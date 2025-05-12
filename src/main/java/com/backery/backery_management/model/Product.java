@@ -10,7 +10,7 @@ public class Product {
     public Product(int id, String name, double price, String image) {
         this.id = id;
         this.name = name != null ? name : "";
-        this.price = price;
+        this.price = price; // No minimum enforcement here
         this.image = image != null ? image : "";
     }
 

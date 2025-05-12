@@ -35,15 +35,23 @@ public class ProductService {
         return sortedProducts;
     }
 
-    public void addProduct(Product product) {
+    public boolean addProduct(Product product) {
+        if (product.getPrice() < 0) {
+            return false; // Reject negative prices
+        }
         List<Product> products = productDAO.getAllProducts();
         int newId = products.isEmpty() ? 1 : products.get(products.size() - 1).getId() + 1;
         product.setId(newId);
         productDAO.saveProduct(product);
+        return true;
     }
 
-    public void updateProduct(Product product) {
+    public boolean updateProduct(Product product) {
+        if (product.getPrice() < 0) {
+            return false; // Reject negative prices
+        }
         productDAO.updateProduct(product);
+        return true;
     }
 
     public void deleteProduct(int id) {
