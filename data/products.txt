@@ -5,4 +5,3 @@
 7,dgadcg,0.02,1747043653873_h2-sinhalese-new-year-foods-in-sri-lanka-1695701969 (1).jpg
 8,asdfasdf,0.01,1747044054946_a6e5289c-2fb8-45b3-bf01-18baec7a14d9.jpg
 9,test,5.0,1747044734728_adjusted_character_image.png
-10,test,7.4,1747044722592_ChatGPT Image Apr 7
