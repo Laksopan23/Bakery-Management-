@@ -36,8 +36,8 @@ public class ProductService {
     }
 
     public boolean addProduct(Product product) {
-        if (product.getPrice() < 0) {
-            return false; // Reject negative prices
+        if (product.getPrice() < 0 || product.getInitialStock() < 0 || product.getCurrentStock() < 0) {
+            return false; // Reject negative price or stock
         }
         List<Product> products = productDAO.getAllProducts();
         int newId = products.isEmpty() ? 1 : products.get(products.size() - 1).getId() + 1;
@@ -47,8 +47,8 @@ public class ProductService {
     }
 
     public boolean updateProduct(Product product) {
-        if (product.getPrice() < 0) {
-            return false; // Reject negative prices
+        if (product.getPrice() < 0 || product.getInitialStock() < 0 || product.getCurrentStock() < 0) {
+            return false; // Reject negative price or stock
         }
         productDAO.updateProduct(product);
         return true;
