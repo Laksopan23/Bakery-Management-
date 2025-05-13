@@ -18,18 +18,30 @@ public class UserService {
         return userDAO.getAllUsers();
     }
 
-    public boolean addUser(User user) {
-        if (!isValidUser(user)) {
+    public boolean registerUser(String username, String password, String email) {
+        if (!isValidRegistration(username, password, email)) {
+            return false;
+        }
+        if (userDAO.isUsernameExists(username)) {
             return false;
         }
         List<User> users = userDAO.getAllUsers();
         int newId = users.isEmpty() ? 1 : users.get(users.size() - 1).getId() + 1;
-        user.setId(newId);
-        if (!userExists(newId)) {
-            userDAO.saveUser(user);
-            return true;
+        User newUser = new User(newId, username, password, email);
+        return userDAO.saveUser(newUser);
+    }
+
+    public boolean authenticateUser(String username, String password) {
+        return userDAO.authenticateUser(username, password);
+    }
+
+    private boolean isValidRegistration(String username, String password, String email) {
+        if (username == null || username.trim().isEmpty() ||
+            password == null || password.trim().isEmpty() ||
+            email == null || email.trim().isEmpty()) {
+            return false;
         }
-        return false;
+        return EMAIL_PATTERN.matcher(email.trim()).matches();
     }
 
     public boolean updateUser(User user) {
@@ -58,7 +70,7 @@ public class UserService {
     }
 
     private boolean isValidUser(User user) {
-        if (user == null || user.getName() == null || user.getName().trim().isEmpty()
+        if (user == null || user.getUsername() == null || user.getUsername().trim().isEmpty()
                 || user.getEmail() == null || user.getEmail().trim().isEmpty()) {
             return false;
         }

@@ -21,7 +21,7 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Name</th>
+                                    <th>Username</th>
                                     <th>Email</th>
                                     <th>Actions</th>
                                 </tr>
@@ -30,7 +30,7 @@
                                 <c:forEach var="user" items="${users}">
                                     <tr>
                                         <td>${user.id}</td>
-                                        <td>${user.name}</td>
+                                        <td>${user.username}</td>
                                         <td>${user.email}</td>
                                         <td>
                                             <a href="${pageContext.request.contextPath}/users/edit/${user.id}" class="btn btn-sm btn-primary">Edit</a>
