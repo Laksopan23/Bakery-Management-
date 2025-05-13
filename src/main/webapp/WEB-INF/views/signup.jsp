@@ -44,26 +44,28 @@
             </div>
         </c:if>
         
-        <form action="${pageContext.request.contextPath}/signup" method="post">
+        <form action="${pageContext.request.contextPath}/signup" method="post" autocomplete="off" onsubmit="return validateForm()">
+            <input type="text" style="display:none;" name="hidden" autocomplete="off"/>
+            <input type="password" style="display:none;" name="hiddenPassword" autocomplete="off"/>
             <div class="mb-3">
                 <label for="username" class="form-label">Username:</label>
-                <input type="text" id="username" name="username" class="form-control" required>
+                <input type="text" id="username" name="username" class="form-control" autocomplete="off" required>
             </div>
             <div class="mb-3">
                 <label for="email" class="form-label">Email:</label>
-                <input type="email" id="email" name="email" class="form-control" required>
+                <input type="email" id="email" name="email" class="form-control" autocomplete="off" required>
             </div>
             <div class="mb-3">
-                <label for="role" class="form-label">Role:</label>
-                <select class="form-select" id="role" name="role" required>
-                    <option value="User">User</option>
-                    <option value="Admin">Admin</option>
-                </select>
-            </div>
-            <div class="mb-3 password-field" style="display: none;">
                 <label for="password" class="form-label">Password:</label>
                 <div class="input-group">
-                    <input type="password" id="password" name="password" class="form-control"/>
+                    <input type="password" id="password" name="password" class="form-control" autocomplete="new-password" required/>
+                    <button type="button" class="btn btn-outline-secondary toggle-password-btn">Show</button>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm Password:</label>
+                <div class="input-group">
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" autocomplete="new-password" required/>
                     <button type="button" class="btn btn-outline-secondary toggle-password-btn">Show</button>
                 </div>
             </div>
@@ -75,19 +77,7 @@
     </div>
 
     <script>
-    document.getElementById('role').addEventListener('change', function() {
-        const passwordField = document.querySelector('.password-field');
-        const passwordInput = document.getElementById('password');
-        if (this.value === 'Admin') {
-            passwordField.style.display = 'block';
-            passwordInput.setAttribute('required', 'required');
-        } else {
-            passwordField.style.display = 'none';
-            passwordInput.removeAttribute('required');
-        }
-    });
-
-    // Toggle password visibility
+    // Toggle password visibility for both password fields
     document.querySelectorAll('.toggle-password-btn').forEach(button => {
         button.addEventListener('click', function() {
             const input = this.previousElementSibling;
@@ -100,6 +90,17 @@
             }
         });
     });
+
+    // Validate password and confirm password match
+    function validateForm() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        if (password !== confirmPassword) {
+            alert('Passwords do not match!');
+            return false;
+        }
+        return true;
+    }
     </script>
 </body>
 </html>

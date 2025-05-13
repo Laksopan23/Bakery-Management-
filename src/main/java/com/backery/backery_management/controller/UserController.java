@@ -28,7 +28,7 @@ public class UserController {
 
     @GetMapping("/add")
     public String showAddUserForm(Model model) {
-        model.addAttribute("user", new User(0, "", "", "", "User"));
+        model.addAttribute("user", new User(0, "", "", "", "User")); // Default role is User
         return "add-user";
     }
 
@@ -37,15 +37,12 @@ public class UserController {
             @RequestParam("username") String username,
             @RequestParam("email") String email,
             @RequestParam("role") String role,
-            @RequestParam(value = "password", required = false) String password,
+            @RequestParam(value = "password", required = true) String password, // Make password required
             RedirectAttributes redirectAttributes) {
-        // Password is required for Admin role
-        if ("Admin".equals(role) && (password == null || password.trim().isEmpty())) {
-            redirectAttributes.addFlashAttribute("message", "Password is required for Admin role.");
+        if (password == null || password.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("message", "Password is required.");
             return "redirect:/users/add";
         }
-        // Password can be empty for User role
-        password = password != null ? password : "";
         if (!userService.registerUser(username, password, email, role)) {
             redirectAttributes.addFlashAttribute("message", "Failed to add user. Username might already exist or invalid data.");
             return "redirect:/users/add";
@@ -73,15 +70,14 @@ public class UserController {
             @RequestParam("role") String role,
             @RequestParam(value = "password", required = false) String password,
             RedirectAttributes redirectAttributes) {
-        // Password is required for Admin role
-        if ("Admin".equals(role) && (password == null || password.trim().isEmpty())) {
-            redirectAttributes.addFlashAttribute("message", "Password is required for Admin role.");
-            return "redirect:/users/edit/" + id;
-        }
         User existingUser = userService.getUserById(id);
         if (existingUser == null) {
             redirectAttributes.addFlashAttribute("message", "User not found.");
             return "redirect:/users";
+        }
+        if (password != null && password.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("message", "Password cannot be empty if provided.");
+            return "redirect:/users/edit/" + id;
         }
         password = (password != null && !password.trim().isEmpty()) ? password : existingUser.getPassword();
         User updatedUser = new User(id, username, password, email, role);

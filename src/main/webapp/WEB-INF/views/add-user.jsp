@@ -63,11 +63,10 @@ document.getElementById('role').addEventListener('change', function() {
     } else {
         passwordInput.removeAttribute('required');
         passwordRequired.style.display = 'none';
-        passwordInput.value = ''; // Clear the password field when switching to User
+        passwordInput.value = '';
     }
 });
 
-// Set initial state based on default role
 document.addEventListener('DOMContentLoaded', function() {
     const roleSelect = document.getElementById('role');
     const passwordInput = document.getElementById('password');
@@ -82,7 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Toggle password visibility
 document.querySelectorAll('.toggle-password-btn').forEach(button => {
     button.addEventListener('click', function() {
         const input = this.previousElementSibling;

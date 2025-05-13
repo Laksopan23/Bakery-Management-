@@ -30,7 +30,7 @@ public class UserDAO {
                         continue;
                     }
                     String[] parts = line.split(",");
-                    if (parts.length == 5) { // Now expecting 5 parts including role
+                    if (parts.length == 5) {
                         try {
                             int id = Integer.parseInt(parts[0].trim());
                             String username = parts[1].trim();
@@ -131,14 +131,6 @@ public class UserDAO {
                 .orElse(null);
     }
 
-    public User findByUsername(String username) {
-        List<User> users = getAllUsers();
-        return users.stream()
-                .filter(user -> user.getUsername().equals(username))
-                .findFirst()
-                .orElse(null);
-    }
-
     public boolean authenticateUser(String username, String password) {
         User user = findByUsername(username);
         return user != null && user.getPassword().equals(password);
@@ -146,5 +138,13 @@ public class UserDAO {
 
     public boolean isUsernameExists(String username) {
         return findByUsername(username) != null;
+    }
+
+    public User findByUsername(String username) {
+        List<User> users = getAllUsers();
+        return users.stream()
+                .filter(user -> user.getUsername().equals(username))
+                .findFirst()
+                .orElse(null);
     }
 }

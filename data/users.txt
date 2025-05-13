@@ -1,2 +1,5 @@
-1,admin,admin,admin@gmail.com,Admin
+1,Admin,admin,admin@gmail.com,Admin
 2,User,user,user@gmail.com,User
+3,Ajith,Ajith@123,ajith@gmail.com,Admin
+4,Vijay,Vijay@123,vijay@gmail.com,User
+5,Raja,Raja@123,raja@gmail.com,Admin

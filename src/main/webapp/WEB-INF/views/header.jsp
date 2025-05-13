@@ -36,7 +36,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/home">Home</a>
                     </li>
-                    <c:if test="${sessionScope.username == 'admin'}">
+                    <c:if test="${sessionScope.role == 'Admin'}">
                         <li class="nav-item">
                             <a class="nav-link" href="/products">Products</a>
                         </li>
@@ -46,11 +46,10 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/orders">Orders</a>
                         </li>
-                        
                     </c:if>
                     <li class="nav-item">
-                            <a class="nav-link" href="${pageContext.request.contextPath}/logout">Logout</a>
-                        </li>
+                        <a class="nav-link" href="${pageContext.request.contextPath}/logout">Logout</a>
+                    </li>
                 </ul>
             </div>
         </div>

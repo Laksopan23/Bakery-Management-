@@ -44,14 +44,16 @@
             </div>
         </c:if>
         
-        <form action="${pageContext.request.contextPath}/" method="post">
+        <form action="${pageContext.request.contextPath}/" method="post" autocomplete="off">
+            <input type="text" style="display:none;" name="hidden" autocomplete="off"/>
+            <input type="password" style="display:none;" name="hiddenPassword" autocomplete="off"/>
             <div class="mb-3">
                 <label for="username" class="form-label">Username:</label>
-                <input type="text" id="username" name="username" class="form-control" required>
+                <input type="text" id="username" name="username" class="form-control" autocomplete="off" required>
             </div>
             <div class="mb-3">
                 <label for="password" class="form-label">Password:</label>
-                <input type="password" id="password" name="password" class="form-control" required>
+                <input type="password" id="password" name="password" class="form-control" autocomplete="new-password" required>
             </div>
             <button type="submit" class="btn btn-success w-100">Login</button>
         </form>
