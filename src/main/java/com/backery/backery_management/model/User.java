@@ -3,12 +3,14 @@ package com.backery.backery_management.model;
 public class User {
 
     private int id;
-    private String name;
+    private String username;
+    private String password;
     private String email;
 
-    public User(int id, String name, String email) {
+    public User(int id, String username, String password, String email) {
         this.id = id;
-        this.name = name != null ? name : "";
+        this.username = username != null ? username : "";
+        this.password = password != null ? password : "";
         this.email = email != null ? email : "";
     }
 
@@ -20,12 +22,20 @@ public class User {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
 
-    public void setName(String name) {
-        this.name = name != null ? name : "";
+    public void setUsername(String username) {
+        this.username = username != null ? username : "";
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password != null ? password : "";
     }
 
     public String getEmail() {
@@ -38,6 +48,6 @@ public class User {
 
     @Override
     public String toString() {
-        return id + "," + name + "," + email;
+        return id + "," + username + "," + password + "," + email;
     }
 }

@@ -30,12 +30,13 @@ public class UserDAO {
                         continue;
                     }
                     String[] parts = line.split(",");
-                    if (parts.length == 3) {
+                    if (parts.length == 4) {
                         try {
                             int id = Integer.parseInt(parts[0].trim());
-                            String name = parts[1].trim();
-                            String email = parts[2].trim();
-                            users.add(new User(id, name, email));
+                            String username = parts[1].trim();
+                            String password = parts[2].trim();
+                            String email = parts[3].trim();
+                            users.add(new User(id, username, password, email));
                         } catch (NumberFormatException e) {
                             System.err.println("Invalid ID format in users.txt: " + line);
                         }
@@ -48,9 +49,9 @@ public class UserDAO {
         return users;
     }
 
-    public void saveUser(User user) {
-        File file = new File(filePath);
+    public boolean saveUser(User user) {
         try {
+            File file = new File(filePath);
             if (!file.exists()) {
                 file.getParentFile().mkdirs();
                 file.createNewFile();
@@ -59,8 +60,10 @@ public class UserDAO {
                 writer.write(user.toString());
                 writer.newLine();
             }
+            return true;
         } catch (IOException e) {
-            System.err.println("Error writing to users.txt: " + e.getMessage());
+            System.err.println("Error saving user: " + e.getMessage());
+            return false;
         }
     }
 
@@ -125,5 +128,22 @@ public class UserDAO {
                 .filter(u -> u.getId() == id)
                 .findFirst()
                 .orElse(null);
+    }
+
+    public User findByUsername(String username) {
+        List<User> users = getAllUsers();
+        return users.stream()
+                .filter(user -> user.getUsername().equals(username))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public boolean authenticateUser(String username, String password) {
+        User user = findByUsername(username);
+        return user != null && user.getPassword().equals(password);
+    }
+
+    public boolean isUsernameExists(String username) {
+        return findByUsername(username) != null;
     }
 }

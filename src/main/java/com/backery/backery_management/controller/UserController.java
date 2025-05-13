@@ -27,15 +27,15 @@ public class UserController {
 
     @GetMapping("/add")
     public String showAddUserForm(Model model) {
-        model.addAttribute("user", new User(0, "", ""));
+        model.addAttribute("user", new User(0, "", "", ""));
         return "add-user";
     }
 
     @PostMapping("/add")
-    public String addUser(@RequestParam("name") String name,
+    public String addUser(@RequestParam("username") String username,
             @RequestParam("email") String email) {
-        User user = new User(0, name, email);
-        userService.addUser(user);
+        User user = new User(0, username, "", email);
+        userService.registerUser(username, "", email);
         return "redirect:/users";
     }
 
@@ -51,9 +51,9 @@ public class UserController {
 
     @PostMapping("/edit/{id}")
     public String editUser(@PathVariable("id") int id,
-            @RequestParam("name") String name,
+            @RequestParam("username") String username,
             @RequestParam("email") String email) {
-        User updatedUser = new User(id, name, email);
+        User updatedUser = new User(id, username, "", email);
         userService.updateUser(updatedUser);
         return "redirect:/users";
     }

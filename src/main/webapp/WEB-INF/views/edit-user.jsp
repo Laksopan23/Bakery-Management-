@@ -18,8 +18,8 @@
                     </c:if>
                     <form method="post" action="${pageContext.request.contextPath}/users/edit/${user.id}">
                         <div class="mb-3">
-                            <label for="name" class="form-label">Name *</label>
-                            <input type="text" class="form-control" id="name" name="name" value="${user.name}" required/>
+                            <label for="username" class="form-label">Username *</label>
+                            <input type="text" class="form-control" id="username" name="username" value="${user.username}" required/>
                         </div>
                         <div class="mb-3">
                             <label for="email" class="form-label">Email *</label>
