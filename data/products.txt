@@ -1,16 +1,2 @@
-<<<<<<< Updated upstream
-2,Bread,56.0,1747033045607_smaller_image.png
-3,test,54.0,1747035605876_a6e5289c-2fb8-45b3-bf01-18baec7a14d9.jpg
-4,Cake,5630.0,1747037100662_adjusted_character_image.png
-5,tgest,0.03,1747043610968_a6e5289c-2fb8-45b3-bf01-18baec7a14d9.jpg
-7,dgadcg,0.02,1747043653873_h2-sinhalese-new-year-foods-in-sri-lanka-1695701969 (1).jpg
-8,asdfasdf,0.01,1747044054946_a6e5289c-2fb8-45b3-bf01-18baec7a14d9.jpg
-9,test,5.0,1747044734728_adjusted_character_image.png
-10,cdscbhadfh,3453.0,1747057612117_adjusted_character_image.png
-1,zcvbcx,zcvbcb,zccvvbczvb,Cake,4545.0,323432,1747058624066_adjusted_character_image.png
-1,Pan Cake,Sweet Pan Cake,Cake,5.5,100,100,1747062843929_ChatGPT Image Apr 7, 2025, 09_49_46 PM.png
-=======
-
-1,asdvasfdfdv,asdfvasfdv,SDFsddf,Cake,232332.0,2331,1747116712323_adjusted_character_image.png
-1,test,test,Bread,34.0,24242,2424424,232424,1747117165964_adjusted_character_image.png
->>>>>>> Stashed changes
+1,jhasbf,dbadfg,Pastry,2342.0,234234,234322,234234,1747118697206_adjusted_character_image.png
+2,wsef,wefwef,Cake,3443.0,232433,3230,2332,1747118863913_adjusted_character_image.png

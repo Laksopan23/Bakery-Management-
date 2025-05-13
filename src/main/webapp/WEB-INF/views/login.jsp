@@ -1,9 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Bakery Management</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,83 +26,38 @@
             width: 100%;
             max-width: 400px;
         }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-        input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .signup-link {
-            text-align: center;
-            margin-top: 1rem;
-        }
-        .alert {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-        }
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h2 style="text-align: center;">Login</h2>
+        <h2 class="text-center mb-4">Login</h2>
         
-        <% if (request.getAttribute("error") != null) { %>
+        <c:if test="${not empty error}">
             <div class="alert alert-danger">
-                <%= request.getAttribute("error") %>
+                <c:out value="${error}" />
             </div>
-        <% } %>
+        </c:if>
         
-        <% if (request.getAttribute("success") != null) { %>
+        <c:if test="${not empty success}">
             <div class="alert alert-success">
-                <%= request.getAttribute("success") %>
+                <c:out value="${success}" />
             </div>
-        <% } %>
+        </c:if>
         
-        <form action="/" method="post">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
+        <form action="${pageContext.request.contextPath}/" method="post">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username:</label>
+                <input type="text" id="username" name="username" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password:</label>
+                <input type="password" id="password" name="password" class="form-control" required>
             </div>
-            <button type="submit">Login</button>
+            <button type="submit" class="btn btn-success w-100">Login</button>
         </form>
-        <div class="signup-link">
-            <p>Don't have an account? <a href="/signup">Sign up</a></p>
+        <div class="text-center mt-3">
+            <p>Don't have an account? <a href="${pageContext.request.contextPath}/signup">Sign up</a></p>
         </div>
     </div>
 </body>
-</html> 
+</html>

@@ -2,7 +2,6 @@ package com.backery.backery_management.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,42 +9,65 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.backery.backery_management.service.UserService;
 
+import jakarta.servlet.http.HttpSession;
+
 @Controller
 public class AuthController {
-    
+
     @Autowired
     private UserService userService;
-    
+
     @GetMapping("/")
-    public String loginPage() {
+    public String loginPage(HttpSession session) {
+        // If already logged in, redirect based on username
+        String username = (String) session.getAttribute("username");
+        if (username != null) {
+            if ("admin".equals(username)) {
+                return "redirect:/home";
+            } else {
+                return "redirect:/products/customer";
+            }
+        }
         return "login";
     }
-    
+
     @GetMapping("/signup")
-    public String signupPage() {
+    public String signupPage(HttpSession session) {
+        // If already logged in, redirect based on username
+        String username = (String) session.getAttribute("username");
+        if (username != null) {
+            if ("admin".equals(username)) {
+                return "redirect:/home";
+            } else {
+                return "redirect:/products/customer";
+            }
+        }
         return "signup";
     }
-    
+
     @PostMapping("/")
-    public String processLogin(@RequestParam String username, 
-                             @RequestParam String password,
-                             RedirectAttributes redirectAttributes) {
+    public String processLogin(@RequestParam String username,
+            @RequestParam String password,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
         if (userService.authenticateUser(username, password)) {
+            // Store username in session
+            session.setAttribute("username", username);
             if ("admin".equals(username)) {
                 return "redirect:/home";
             }
-            return "redirect:/customer";
+            return "redirect:/products/customer";
         } else {
             redirectAttributes.addFlashAttribute("error", "Invalid username or password");
             return "redirect:/";
         }
     }
-    
+
     @PostMapping("/signup")
-    public String processSignup(@RequestParam String username, 
-                              @RequestParam String password,
-                              @RequestParam String email,
-                              RedirectAttributes redirectAttributes) {
+    public String processSignup(@RequestParam String username,
+            @RequestParam String password,
+            @RequestParam String email,
+            RedirectAttributes redirectAttributes) {
         if (userService.registerUser(username, password, email)) {
             redirectAttributes.addFlashAttribute("success", "Registration successful! Please login.");
             return "redirect:/";
@@ -54,4 +76,4 @@ public class AuthController {
             return "redirect:/signup";
         }
     }
-} 
+}

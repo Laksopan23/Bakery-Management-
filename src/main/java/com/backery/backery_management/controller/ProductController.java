@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -200,5 +202,37 @@ public class ProductController {
         productService.deleteProduct(id);
         redirectAttributes.addFlashAttribute("successMessage", "Product deleted successfully!");
         return "redirect:/products";
+    }
+
+    @GetMapping("/customer")
+    public String showCustomerProducts(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "category", required = false) String category,
+            Model model) {
+        List<Product> products = productService.getAllProducts();
+
+        // Apply search filter (by name or description)
+        if (search != null && !search.trim().isEmpty()) {
+            String searchLower = search.toLowerCase();
+            products = products.stream()
+                    .filter(p -> p.getName().toLowerCase().contains(searchLower)
+                    || (p.getDescription() != null && p.getDescription().toLowerCase().contains(searchLower)))
+                    .collect(Collectors.toList());
+        }
+
+        // Apply category filter
+        if (category != null && !category.trim().isEmpty() && !category.equals("All")) {
+            products = products.stream()
+                    .filter(p -> p.getCategory().equalsIgnoreCase(category))
+                    .collect(Collectors.toList());
+        }
+
+        // Add filtered products and categories to the model
+        model.addAttribute("products", products);
+        model.addAttribute("categories", new String[]{"All", "Bread", "Cake", "Pastry", "Cookie", "Other"});
+        model.addAttribute("selectedCategory", category != null ? category : "All");
+        model.addAttribute("searchQuery", search != null ? search : "");
+
+        return "customer";
     }
 }
