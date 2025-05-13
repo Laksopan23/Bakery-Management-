@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 2,Bread,56.0,1747033045607_smaller_image.png
 3,test,54.0,1747035605876_a6e5289c-2fb8-45b3-bf01-18baec7a14d9.jpg
 4,Cake,5630.0,1747037100662_adjusted_character_image.png
@@ -8,3 +9,8 @@
 10,cdscbhadfh,3453.0,1747057612117_adjusted_character_image.png
 1,zcvbcx,zcvbcb,zccvvbczvb,Cake,4545.0,323432,1747058624066_adjusted_character_image.png
 1,Pan Cake,Sweet Pan Cake,Cake,5.5,100,100,1747062843929_ChatGPT Image Apr 7, 2025, 09_49_46 PM.png
+=======
+
+1,asdvasfdfdv,asdfvasfdv,SDFsddf,Cake,232332.0,2331,1747116712323_adjusted_character_image.png
+1,test,test,Bread,34.0,24242,2424424,232424,1747117165964_adjusted_character_image.png
+>>>>>>> Stashed changes

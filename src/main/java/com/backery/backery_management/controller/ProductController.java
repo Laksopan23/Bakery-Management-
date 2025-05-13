@@ -37,7 +37,7 @@ public class ProductController {
 
     @GetMapping("/add")
     public String showAddProductForm(Model model) {
-        model.addAttribute("product", new Product(0, "", "", "", 0.0, 0, 0, ""));
+        model.addAttribute("product", new Product(0, "", "", "", 0.0, 0, 0, 0, ""));
         return "add-product";
     }
 
@@ -47,22 +47,27 @@ public class ProductController {
             @RequestParam(value = "description", required = false) String description,
             @RequestParam("category") String category,
             @RequestParam("price") String priceStr,
+            @RequestParam("quantityAvailable") String quantityAvailableStr,
             @RequestParam("initialStock") String initialStockStr,
             @RequestParam("currentStock") String currentStockStr,
             @RequestParam("image") MultipartFile image,
             RedirectAttributes redirectAttributes) {
+        // Handle price, quantity, initial stock, and current stock parsing
         double price;
+        int quantityAvailable;
         int initialStock;
         int currentStock;
         try {
             price = priceStr.isEmpty() ? 0.0 : Double.parseDouble(priceStr);
+            quantityAvailable = quantityAvailableStr.isEmpty() ? 0 : Integer.parseInt(quantityAvailableStr);
             initialStock = initialStockStr.isEmpty() ? 0 : Integer.parseInt(initialStockStr);
             currentStock = currentStockStr.isEmpty() ? 0 : Integer.parseInt(currentStockStr);
         } catch (NumberFormatException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Invalid price or stock format.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid price, quantity, initial stock, or current stock format.");
             return "redirect:/products/add";
         }
 
+        // Validate image format (PNG only)
         String imageName = "";
         if (!image.isEmpty()) {
             String contentType = image.getContentType();
@@ -90,11 +95,11 @@ public class ProductController {
             }
         }
 
-        Product product = new Product(0, name, description, category, price, initialStock, currentStock, imageName);
+        Product product = new Product(0, name, description, category, price, quantityAvailable, initialStock, currentStock, imageName);
         if (productService.addProduct(product)) {
             redirectAttributes.addFlashAttribute("successMessage", "Product added successfully!");
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Price or stock cannot be less than 0.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Price or quantity cannot be less than 0.");
             return "redirect:/products/add";
         }
         return "redirect:/products";
@@ -118,23 +123,28 @@ public class ProductController {
             @RequestParam(value = "description", required = false) String description,
             @RequestParam("category") String category,
             @RequestParam("price") String priceStr,
+            @RequestParam("quantityAvailable") String quantityAvailableStr,
             @RequestParam("initialStock") String initialStockStr,
             @RequestParam("currentStock") String currentStockStr,
             @RequestParam("image") MultipartFile image,
             @RequestParam(value = "existingImage", required = false) String existingImage,
             RedirectAttributes redirectAttributes) {
+        // Handle price, quantity, initial stock, and current stock parsing
         double price;
+        int quantityAvailable;
         int initialStock;
         int currentStock;
         try {
             price = priceStr.isEmpty() ? 0.0 : Double.parseDouble(priceStr);
+            quantityAvailable = quantityAvailableStr.isEmpty() ? 0 : Integer.parseInt(quantityAvailableStr);
             initialStock = initialStockStr.isEmpty() ? 0 : Integer.parseInt(initialStockStr);
             currentStock = currentStockStr.isEmpty() ? 0 : Integer.parseInt(currentStockStr);
         } catch (NumberFormatException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Invalid price or stock format.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid price, quantity, initial stock, or current stock format.");
             return "redirect:/products/edit/" + id;
         }
 
+        // Validate image format (PNG only)
         String imageName = existingImage != null ? existingImage : "";
         if (!image.isEmpty()) {
             String contentType = image.getContentType();
@@ -166,11 +176,11 @@ public class ProductController {
             }
         }
 
-        Product updatedProduct = new Product(id, name, description, category, price, initialStock, currentStock, imageName);
+        Product updatedProduct = new Product(id, name, description, category, price, quantityAvailable, initialStock, currentStock, imageName);
         if (productService.updateProduct(updatedProduct)) {
             redirectAttributes.addFlashAttribute("successMessage", "Product updated successfully!");
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Price or stock cannot be less than 0.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Price or quantity cannot be less than 0.");
             return "redirect:/products/edit/" + id;
         }
         return "redirect:/products";

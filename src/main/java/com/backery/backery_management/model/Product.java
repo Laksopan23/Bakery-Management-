@@ -7,16 +7,18 @@ public class Product {
     private String description;
     private String category;
     private double price;
+    private int quantityAvailable;
     private int initialStock;
     private int currentStock;
     private String image;
 
-    public Product(int id, String name, String description, String category, double price, int initialStock, int currentStock, String image) {
+    public Product(int id, String name, String description, String category, double price, int quantityAvailable, int initialStock, int currentStock, String image) {
         this.id = id;
         this.name = name != null ? name : "";
         this.description = description != null ? description : "";
         this.category = category != null ? category : "";
         this.price = price;
+        this.quantityAvailable = quantityAvailable;
         this.initialStock = initialStock;
         this.currentStock = currentStock;
         this.image = image != null ? image : "";
@@ -62,6 +64,14 @@ public class Product {
         this.price = price;
     }
 
+    public int getQuantityAvailable() {
+        return quantityAvailable;
+    }
+
+    public void setQuantityAvailable(int quantityAvailable) {
+        this.quantityAvailable = quantityAvailable;
+    }
+
     public int getInitialStock() {
         return initialStock;
     }
@@ -88,6 +98,6 @@ public class Product {
 
     @Override
     public String toString() {
-        return id + "," + name + "," + description + "," + category + "," + price + "," + initialStock + "," + currentStock + "," + image;
+        return id + "," + name + "," + description + "," + category + "," + price + "," + quantityAvailable + "," + initialStock + "," + currentStock + "," + image;
     }
 }
