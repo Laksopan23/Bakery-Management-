@@ -1,6 +1,6 @@
 2,Bread,56.0,1747033045607_smaller_image.png
 3,test,54.0,1747035605876_a6e5289c-2fb8-45b3-bf01-18baec7a14d9.jpg
-4,Cake,56.0,1747037100662_adjusted_character_image.png
+4,Cake,5630.0,1747037100662_adjusted_character_image.png
 5,tgest,0.03,1747043610968_a6e5289c-2fb8-45b3-bf01-18baec7a14d9.jpg
 7,dgadcg,0.02,1747043653873_h2-sinhalese-new-year-foods-in-sri-lanka-1695701969 (1).jpg
 8,asdfasdf,0.01,1747044054946_a6e5289c-2fb8-45b3-bf01-18baec7a14d9.jpg

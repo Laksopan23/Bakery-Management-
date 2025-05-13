@@ -14,7 +14,7 @@
     <name>BackeryManagement</name>
     <description>Bakery Management System</description>
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Web Starter -->
