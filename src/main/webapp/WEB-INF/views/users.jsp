@@ -23,6 +23,8 @@
                                     <th>ID</th>
                                     <th>Username</th>
                                     <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Password</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -32,6 +34,16 @@
                                         <td>${user.id}</td>
                                         <td>${user.username}</td>
                                         <td>${user.email}</td>
+                                        <td>${user.role}</td>
+                                        <td>
+                                            <c:if test="${user.role == 'Admin'}">
+                                                <span class="password-hidden" id="password-${user.id}">********</span>
+                                                <button type="button" class="btn btn-sm btn-link toggle-password" data-target="password-${user.id}">
+                                                    Show
+                                                </button>
+                                                <span class="password-shown d-none" id="password-shown-${user.id}">${user.password}</span>
+                                            </c:if>
+                                        </td>
                                         <td>
                                             <a href="${pageContext.request.contextPath}/users/edit/${user.id}" class="btn btn-sm btn-primary">Edit</a>
                                             <a href="${pageContext.request.contextPath}/users/delete/${user.id}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
@@ -50,5 +62,25 @@
         </div>
     </div>
 </div>
+
+<script>
+document.querySelectorAll('.toggle-password').forEach(button => {
+    button.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const hiddenSpan = document.getElementById(targetId);
+        const shownSpan = document.getElementById('password-shown-' + targetId.split('-')[1]);
+        
+        if (hiddenSpan.classList.contains('d-none')) {
+            hiddenSpan.classList.remove('d-none');
+            shownSpan.classList.add('d-none');
+            this.textContent = 'Show';
+        } else {
+            hiddenSpan.classList.add('d-none');
+            shownSpan.classList.remove('d-none');
+            this.textContent = 'Hide';
+        }
+    });
+});
+</script>
 
 <jsp:include page="footer.jsp" />

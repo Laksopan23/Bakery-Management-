@@ -18,7 +18,7 @@ public class UserService {
         return userDAO.getAllUsers();
     }
 
-    public boolean registerUser(String username, String password, String email) {
+    public boolean registerUser(String username, String password, String email, String role) {
         if (!isValidRegistration(username, password, email)) {
             return false;
         }
@@ -27,7 +27,7 @@ public class UserService {
         }
         List<User> users = userDAO.getAllUsers();
         int newId = users.isEmpty() ? 1 : users.get(users.size() - 1).getId() + 1;
-        User newUser = new User(newId, username, password, email);
+        User newUser = new User(newId, username, password, email, role);
         return userDAO.saveUser(newUser);
     }
 
@@ -36,11 +36,11 @@ public class UserService {
     }
 
     private boolean isValidRegistration(String username, String password, String email) {
-        if (username == null || username.trim().isEmpty() ||
-            password == null || password.trim().isEmpty() ||
-            email == null || email.trim().isEmpty()) {
+        if (username == null || username.trim().isEmpty()
+                || email == null || email.trim().isEmpty()) {
             return false;
         }
+        // Password can be empty for non-admin users, but required for admin
         return EMAIL_PATTERN.matcher(email.trim()).matches();
     }
 
@@ -72,6 +72,10 @@ public class UserService {
     private boolean isValidUser(User user) {
         if (user == null || user.getUsername() == null || user.getUsername().trim().isEmpty()
                 || user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+            return false;
+        }
+        // Validate role
+        if (user.getRole() == null || (!user.getRole().equals("Admin") && !user.getRole().equals("User"))) {
             return false;
         }
         return EMAIL_PATTERN.matcher(user.getEmail().trim()).matches();

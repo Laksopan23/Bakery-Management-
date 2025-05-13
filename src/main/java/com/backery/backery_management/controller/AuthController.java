@@ -19,7 +19,6 @@ public class AuthController {
 
     @GetMapping("/")
     public String loginPage(HttpSession session) {
-        // If already logged in, redirect based on username
         String username = (String) session.getAttribute("username");
         if (username != null) {
             if ("admin".equals(username)) {
@@ -33,7 +32,6 @@ public class AuthController {
 
     @GetMapping("/signup")
     public String signupPage(HttpSession session) {
-        // If already logged in, redirect based on username
         String username = (String) session.getAttribute("username");
         if (username != null) {
             if ("admin".equals(username)) {
@@ -51,7 +49,6 @@ public class AuthController {
             HttpSession session,
             RedirectAttributes redirectAttributes) {
         if (userService.authenticateUser(username, password)) {
-            // Store username in session
             session.setAttribute("username", username);
             if ("admin".equals(username)) {
                 return "redirect:/home";
@@ -64,11 +61,18 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public String processSignup(@RequestParam String username,
+    public String processSignup(
+            @RequestParam String username,
             @RequestParam String password,
             @RequestParam String email,
+            @RequestParam(value = "role", defaultValue = "User") String role,
             RedirectAttributes redirectAttributes) {
-        if (userService.registerUser(username, password, email)) {
+        // Validate password for admin role
+        if ("Admin".equals(role) && (password == null || password.trim().isEmpty())) {
+            redirectAttributes.addFlashAttribute("error", "Password is required for Admin role.");
+            return "redirect:/signup";
+        }
+        if (userService.registerUser(username, password, email, role)) {
             redirectAttributes.addFlashAttribute("success", "Registration successful! Please login.");
             return "redirect:/";
         } else {

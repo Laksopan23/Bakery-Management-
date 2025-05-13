@@ -1,9 +1,13 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - Bakery Management</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,76 +26,80 @@
             width: 100%;
             max-width: 400px;
         }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-        input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .login-link {
-            text-align: center;
-            margin-top: 1rem;
-        }
-        .alert {
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-        }
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
     </style>
 </head>
 <body>
     <div class="signup-container">
-        <h2 style="text-align: center;">Sign Up</h2>
+        <h2 class="text-center mb-4">Sign Up</h2>
         
-        <% if (request.getAttribute("error") != null) { %>
+        <c:if test="${not empty error}">
             <div class="alert alert-danger">
-                <%= request.getAttribute("error") %>
+                <c:out value="${error}" />
             </div>
-        <% } %>
+        </c:if>
         
-        <form action="/signup" method="post">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
+        <c:if test="${not empty success}">
+            <div class="alert alert-success">
+                <c:out value="${success}" />
             </div>
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
+        </c:if>
+        
+        <form action="${pageContext.request.contextPath}/signup" method="post">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username:</label>
+                <input type="text" id="username" name="username" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email:</label>
+                <input type="email" id="email" name="email" class="form-control" required>
             </div>
-            <button type="submit">Sign Up</button>
+            <div class="mb-3">
+                <label for="role" class="form-label">Role:</label>
+                <select class="form-select" id="role" name="role" required>
+                    <option value="User">User</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+            <div class="mb-3 password-field" style="display: none;">
+                <label for="password" class="form-label">Password:</label>
+                <div class="input-group">
+                    <input type="password" id="password" name="password" class="form-control"/>
+                    <button type="button" class="btn btn-outline-secondary toggle-password-btn">Show</button>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success w-100">Sign Up</button>
         </form>
-        <div class="login-link">
-            <p>Already have an account? <a href="/">Login</a></p>
+        <div class="text-center mt-3">
+            <p>Already have an account? <a href="${pageContext.request.contextPath}/">Login</a></p>
         </div>
     </div>
+
+    <script>
+    document.getElementById('role').addEventListener('change', function() {
+        const passwordField = document.querySelector('.password-field');
+        const passwordInput = document.getElementById('password');
+        if (this.value === 'Admin') {
+            passwordField.style.display = 'block';
+            passwordInput.setAttribute('required', 'required');
+        } else {
+            passwordField.style.display = 'none';
+            passwordInput.removeAttribute('required');
+        }
+    });
+
+    // Toggle password visibility
+    document.querySelectorAll('.toggle-password-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                this.textContent = 'Hide';
+            } else {
+                input.type = 'password';
+                this.textContent = 'Show';
+            }
+        });
+    });
+    </script>
 </body>
-</html> 
+</html>

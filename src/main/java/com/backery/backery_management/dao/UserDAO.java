@@ -30,13 +30,14 @@ public class UserDAO {
                         continue;
                     }
                     String[] parts = line.split(",");
-                    if (parts.length == 4) {
+                    if (parts.length == 5) { // Now expecting 5 parts including role
                         try {
                             int id = Integer.parseInt(parts[0].trim());
                             String username = parts[1].trim();
                             String password = parts[2].trim();
                             String email = parts[3].trim();
-                            users.add(new User(id, username, password, email));
+                            String role = parts[4].trim();
+                            users.add(new User(id, username, password, email, role));
                         } catch (NumberFormatException e) {
                             System.err.println("Invalid ID format in users.txt: " + line);
                         }

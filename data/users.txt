@@ -1,3 +1,2 @@
-
-1,diven,123,diven@gmail.com
-2,admin,admin,admin@gmail.com
+1,admin,admin,admin@gmail.com,Admin
+2,User,user,user@gmail.com,User
