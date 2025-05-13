@@ -30,12 +30,16 @@ public class ProductDAO {
                         continue;
                     }
                     String[] parts = line.split(",");
-                    if (parts.length >= 4) {
+                    if (parts.length >= 8) {
                         int id = Integer.parseInt(parts[0].trim());
                         String name = parts[1].trim();
-                        double price = Double.parseDouble(parts[2].trim());
-                        String image = parts[3].trim();
-                        products.add(new Product(id, name, price, image));
+                        String description = parts[2].trim();
+                        String category = parts[3].trim();
+                        double price = Double.parseDouble(parts[4].trim());
+                        int initialStock = Integer.parseInt(parts[5].trim());
+                        int currentStock = Integer.parseInt(parts[6].trim());
+                        String image = parts[7].trim();
+                        products.add(new Product(id, name, description, category, price, initialStock, currentStock, image));
                     }
                 }
             }

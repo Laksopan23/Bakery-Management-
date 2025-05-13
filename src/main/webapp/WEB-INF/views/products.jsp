@@ -1,137 +1,79 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Products</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f9fa;
-        }
-        .navbar {
-            background-color: #007bff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            padding: 15px 0;
-            text-align: center;
-        }
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            padding: 15px 25px;
-            display: inline-block;
-            font-weight: 500;
-            transition: background-color 0.3s;
-        }
-        .navbar a:hover {
-            background-color: #0056b3;
-            border-radius: 5px;
-        }
-        .content {
-            padding: 30px 20px;
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-            font-size: 2em;
-            margin-bottom: 20px;
-        }
-        table {
-            margin: 20px auto;
-            border-collapse: separate;
-            border-spacing: 0;
-            width: 90%;
-            background-color: white;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f1f1f1;
-            color: #333;
-            font-weight: 600;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        img {
-            max-width: 80px;
-            border-radius: 5px;
-        }
-        .message {
-            color: #28a745;
-            font-weight: 500;
-            margin: 10px 0;
-        }
-        .error {
-            color: #dc3545;
-            font-weight: 500;
-            margin: 10px 0;
-        }
-        a.button {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 10px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        a.button:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
-    <!-- Navigation Bar -->
-    <div class="navbar">
-        <a href="/">Home</a>
-        <a href="/products">Products</a>
-        <a href="/users">Users</a>
-        <a href="/orders">Orders</a>
-    </div>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 
-    <!-- Content -->
-    <div class="content">
-        <h1>Our Products (Sorted by Price)</h1>
-        <c:if test="${not empty message}">
-            <p class="${message.contains('Error') || message.contains('not found') ? 'error' : 'message'}">${message}</p>
-        </c:if>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Image</th>
-                <th>Actions</th>
-            </tr>
-            <c:forEach var="product" items="${products}">
-                <tr>
-                    <td>${product.id}</td>
-                    <td>${product.name}</td>
-                    <td>${product.price}</td>
-                    <td>
-                        <c:if test="${not empty product.image}">
-                            <img src="/resources/images/products/${product.image}" alt="${product.name}"/>
-                        </c:if>
-                    </td>
-                    <td>
-                        <a href="/products/edit/${product.id}" class="button">Edit</a>
-                        <a href="/products/delete/${product.id}" class="button" style="background-color: #dc3545;" onclick="return confirm('Are you sure?')">Delete</a>
-                    </td>
-                </tr>
-            </c:forEach>
-        </table>
-        <a href="/products/add" class="button">Add New Product</a>
-        <a href="/" class="button">Back to Home</a>
+<jsp:include page="header.jsp" />
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Our Products (Sorted by Price)</h3>
+                </div>
+                <div class="card-body p-4">
+                    <c:if test="${not empty successMessage}">
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <c:out value="${successMessage}" />
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </c:if>
+                    <c:if test="${not empty errorMessage}">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <c:out value="${errorMessage}" />
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </c:if>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered align-middle">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th>Price (LKR)</th>
+                                    <th>Initial Stock</th>
+                                    <th>Current Stock</th>
+                                    <th>Image</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:forEach var="product" items="${products}">
+                                    <tr>
+                                        <td class="text-center">${product.id}</td>
+                                        <td>${product.name}</td>
+                                        <td>${product.description}</td>
+                                        <td>${product.category}</td>
+                                        <td class="text-end"><fmt:formatNumber value="${product.price}" type="currency" currencyCode="LKR"/></td>
+                                        <td class="text-center">${product.initialStock}</td>
+                                        <td class="text-center">${product.currentStock}</td>
+                                        <td>
+                                            <c:if test="${not empty product.image}">
+                                                <img src="${pageContext.request.contextPath}/resources/images/products/${product.image}" 
+                                                     alt="${product.name}" class="img-fluid rounded" style="max-width: 100px;">
+                                            </c:if>
+                                        </td>
+                                        <td>
+                                            <a href="${pageContext.request.contextPath}/products/edit/${product.id}" 
+                                               class="btn btn-sm btn-primary me-2">Edit</a>
+                                            <a href="${pageContext.request.contextPath}/products/delete/${product.id}" 
+                                               class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                        <a href="${pageContext.request.contextPath}/products/add" class="btn btn-primary btn-lg">Add New Product</a>
+                        <a href="${pageContext.request.contextPath}/" class="btn btn-secondary btn-lg">Back to Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</body>
-</html>
+</div>
+
+<jsp:include page="footer.jsp" />

@@ -37,25 +37,32 @@ public class ProductController {
 
     @GetMapping("/add")
     public String showAddProductForm(Model model) {
-        model.addAttribute("product", new Product(0, "", 0.0, ""));
+        model.addAttribute("product", new Product(0, "", "", "", 0.0, 0, 0, ""));
         return "add-product";
     }
 
     @PostMapping("/add")
-    public String addProduct(@RequestParam("name") String name,
+    public String addProduct(
+            @RequestParam("name") String name,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam("category") String category,
             @RequestParam("price") String priceStr,
+            @RequestParam("initialStock") String initialStockStr,
+            @RequestParam("currentStock") String currentStockStr,
             @RequestParam("image") MultipartFile image,
             RedirectAttributes redirectAttributes) {
-        // Handle empty price input
         double price;
+        int initialStock;
+        int currentStock;
         try {
             price = priceStr.isEmpty() ? 0.0 : Double.parseDouble(priceStr);
+            initialStock = initialStockStr.isEmpty() ? 0 : Integer.parseInt(initialStockStr);
+            currentStock = currentStockStr.isEmpty() ? 0 : Integer.parseInt(currentStockStr);
         } catch (NumberFormatException e) {
-            redirectAttributes.addFlashAttribute("message", "Invalid price format.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid price or stock format.");
             return "redirect:/products/add";
         }
 
-        // Validate image format (PNG only)
         String imageName = "";
         if (!image.isEmpty()) {
             String contentType = image.getContentType();
@@ -64,7 +71,7 @@ public class ProductController {
                     || (originalFilename != null && originalFilename.toLowerCase().endsWith(".png"));
 
             if (!isPng) {
-                redirectAttributes.addFlashAttribute("message", "Invalid file format. Only PNG files are allowed.");
+                redirectAttributes.addFlashAttribute("errorMessage", "Invalid file format. Only PNG files are allowed.");
                 return "redirect:/products/add";
             }
 
@@ -78,16 +85,16 @@ public class ProductController {
                 Files.write(filePath, image.getBytes());
             } catch (IOException e) {
                 e.printStackTrace();
-                redirectAttributes.addFlashAttribute("message", "Error uploading image.");
+                redirectAttributes.addFlashAttribute("errorMessage", "Error uploading image.");
                 return "redirect:/products/add";
             }
         }
 
-        Product product = new Product(0, name, price, imageName);
+        Product product = new Product(0, name, description, category, price, initialStock, currentStock, imageName);
         if (productService.addProduct(product)) {
-            redirectAttributes.addFlashAttribute("message", "Product added successfully!");
+            redirectAttributes.addFlashAttribute("successMessage", "Product added successfully!");
         } else {
-            redirectAttributes.addFlashAttribute("message", "Price cannot be less than 0.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Price or stock cannot be less than 0.");
             return "redirect:/products/add";
         }
         return "redirect:/products";
@@ -97,7 +104,7 @@ public class ProductController {
     public String showEditProductForm(@PathVariable("id") int id, Model model, RedirectAttributes redirectAttributes) {
         Product product = productService.getProductById(id);
         if (product == null) {
-            redirectAttributes.addFlashAttribute("message", "Product not found.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Product not found.");
             return "redirect:/products";
         }
         model.addAttribute("product", product);
@@ -105,22 +112,29 @@ public class ProductController {
     }
 
     @PostMapping("/edit/{id}")
-    public String editProduct(@PathVariable("id") int id,
+    public String editProduct(
+            @PathVariable("id") int id,
             @RequestParam("name") String name,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam("category") String category,
             @RequestParam("price") String priceStr,
+            @RequestParam("initialStock") String initialStockStr,
+            @RequestParam("currentStock") String currentStockStr,
             @RequestParam("image") MultipartFile image,
             @RequestParam(value = "existingImage", required = false) String existingImage,
             RedirectAttributes redirectAttributes) {
-        // Handle empty price input
         double price;
+        int initialStock;
+        int currentStock;
         try {
             price = priceStr.isEmpty() ? 0.0 : Double.parseDouble(priceStr);
+            initialStock = initialStockStr.isEmpty() ? 0 : Integer.parseInt(initialStockStr);
+            currentStock = currentStockStr.isEmpty() ? 0 : Integer.parseInt(currentStockStr);
         } catch (NumberFormatException e) {
-            redirectAttributes.addFlashAttribute("message", "Invalid price format.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid price or stock format.");
             return "redirect:/products/edit/" + id;
         }
 
-        // Validate image format (PNG only)
         String imageName = existingImage != null ? existingImage : "";
         if (!image.isEmpty()) {
             String contentType = image.getContentType();
@@ -129,7 +143,7 @@ public class ProductController {
                     || (originalFilename != null && originalFilename.toLowerCase().endsWith(".png"));
 
             if (!isPng) {
-                redirectAttributes.addFlashAttribute("message", "Invalid file format. Only PNG files are allowed.");
+                redirectAttributes.addFlashAttribute("errorMessage", "Invalid file format. Only PNG files are allowed.");
                 return "redirect:/products/edit/" + id;
             }
 
@@ -147,16 +161,16 @@ public class ProductController {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                redirectAttributes.addFlashAttribute("message", "Error uploading new image.");
+                redirectAttributes.addFlashAttribute("errorMessage", "Error uploading new image.");
                 return "redirect:/products/edit/" + id;
             }
         }
 
-        Product updatedProduct = new Product(id, name, price, imageName);
+        Product updatedProduct = new Product(id, name, description, category, price, initialStock, currentStock, imageName);
         if (productService.updateProduct(updatedProduct)) {
-            redirectAttributes.addFlashAttribute("message", "Product updated successfully!");
+            redirectAttributes.addFlashAttribute("successMessage", "Product updated successfully!");
         } else {
-            redirectAttributes.addFlashAttribute("message", "Price cannot be less than 0.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Price or stock cannot be less than 0.");
             return "redirect:/products/edit/" + id;
         }
         return "redirect:/products";
@@ -174,7 +188,7 @@ public class ProductController {
             }
         }
         productService.deleteProduct(id);
-        redirectAttributes.addFlashAttribute("message", "Product deleted successfully!");
+        redirectAttributes.addFlashAttribute("successMessage", "Product deleted successfully!");
         return "redirect:/products";
     }
 }
