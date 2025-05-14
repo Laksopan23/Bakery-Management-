@@ -6,6 +6,7 @@ public class Order {
     private int userId;
     private int productId;
     private int quantity;
+    private String status;
 
     // Delivery details
     private String fullName;
@@ -15,12 +16,14 @@ public class Order {
     private String city;
     private String postalCode;
     private String deliveryNotes;
+    private String paymentMethod;
 
     public Order(int id, int userId, int productId, int quantity) {
         this.id = id;
         this.userId = userId;
         this.productId = productId;
         this.quantity = quantity;
+        this.status = "PENDING";
     }
 
     // Getters and Setters
@@ -54,6 +57,14 @@ public class Order {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     // Delivery details getters and setters
@@ -111,6 +122,14 @@ public class Order {
 
     public void setDeliveryNotes(String deliveryNotes) {
         this.deliveryNotes = deliveryNotes;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
     public void setDeliveryDetails(String fullName, String phone, String email,
