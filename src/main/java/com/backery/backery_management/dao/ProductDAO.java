@@ -14,27 +14,24 @@ import com.backery.backery_management.model.Product;
 
 public class ProductDAO {
 
-    private final String filePath;
+    private static final String DELIMITER = "|||"; // Using a unique delimiter that won't appear in text
+    private String filePath;
 
     public ProductDAO() {
-        // Get the absolute path to the data directory
-        String baseDir = System.getProperty("user.dir");
-        this.filePath = baseDir + File.separator + "data" + File.separator + "products.txt";
-        System.out.println("ProductDAO initialized with file path: " + this.filePath);
+        this.filePath = "data/products.txt";
     }
 
     public List<Product> getAllProducts() {
         List<Product> products = new ArrayList<>();
         File file = new File(filePath);
-        System.out.println("ProductDAO: Reading products from: " + file.getAbsolutePath());
-        System.out.println("ProductDAO: File exists: " + file.exists());
-        System.out.println("ProductDAO: File size: " + (file.exists() ? file.length() : "N/A") + " bytes");
+        System.out.println("Reading products from: " + file.getAbsolutePath());
 
         try {
             if (!file.exists()) {
-                System.out.println("ProductDAO: Products file does not exist, creating it...");
+                System.out.println("Products file does not exist, creating it...");
                 file.getParentFile().mkdirs();
                 file.createNewFile();
+                return products;
             }
 
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -47,7 +44,7 @@ public class ProductDAO {
                         continue;
                     }
                     System.out.println("ProductDAO: Reading product line " + lineNumber + ": " + line);
-                    String[] parts = line.split(",");
+                    String[] parts = line.split("\\|\\|\\|");
                     System.out.println("ProductDAO: Found " + parts.length + " parts in line " + lineNumber);
 
                     if (parts.length >= 9) {
@@ -98,7 +95,17 @@ public class ProductDAO {
             }
 
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-                String productLine = product.toString();
+                String productLine = String.join(DELIMITER,
+                        String.valueOf(product.getId()),
+                        product.getName(),
+                        product.getDescription(),
+                        product.getCategory(),
+                        String.valueOf(product.getPrice()),
+                        String.valueOf(product.getQuantityAvailable()),
+                        String.valueOf(product.getInitialStock()),
+                        String.valueOf(product.getCurrentStock()),
+                        product.getImage()
+                );
                 writer.write(productLine);
                 writer.newLine();
                 System.out.println("Successfully wrote product to file: " + productLine);
@@ -123,10 +130,32 @@ public class ProductDAO {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
                 for (Product p : products) {
                     if (p.getId() == updatedProduct.getId()) {
-                        writer.write(updatedProduct.toString());
-                        System.out.println("Updated product: " + updatedProduct.toString());
+                        String productLine = String.join(DELIMITER,
+                                String.valueOf(updatedProduct.getId()),
+                                updatedProduct.getName(),
+                                updatedProduct.getDescription(),
+                                updatedProduct.getCategory(),
+                                String.valueOf(updatedProduct.getPrice()),
+                                String.valueOf(updatedProduct.getQuantityAvailable()),
+                                String.valueOf(updatedProduct.getInitialStock()),
+                                String.valueOf(updatedProduct.getCurrentStock()),
+                                updatedProduct.getImage()
+                        );
+                        writer.write(productLine);
+                        System.out.println("Updated product: " + productLine);
                     } else {
-                        writer.write(p.toString());
+                        String productLine = String.join(DELIMITER,
+                                String.valueOf(p.getId()),
+                                p.getName(),
+                                p.getDescription(),
+                                p.getCategory(),
+                                String.valueOf(p.getPrice()),
+                                String.valueOf(p.getQuantityAvailable()),
+                                String.valueOf(p.getInitialStock()),
+                                String.valueOf(p.getCurrentStock()),
+                                p.getImage()
+                        );
+                        writer.write(productLine);
                     }
                     writer.newLine();
                 }
@@ -151,7 +180,18 @@ public class ProductDAO {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
                 for (Product p : products) {
                     if (p.getId() != id) {
-                        writer.write(p.toString());
+                        String productLine = String.join(DELIMITER,
+                                String.valueOf(p.getId()),
+                                p.getName(),
+                                p.getDescription(),
+                                p.getCategory(),
+                                String.valueOf(p.getPrice()),
+                                String.valueOf(p.getQuantityAvailable()),
+                                String.valueOf(p.getInitialStock()),
+                                String.valueOf(p.getCurrentStock()),
+                                p.getImage()
+                        );
+                        writer.write(productLine);
                         writer.newLine();
                     }
                 }
@@ -163,7 +203,6 @@ public class ProductDAO {
     }
 
     public Product getProductById(int id) {
-        System.out.println("Getting product by ID: " + id);
         return getAllProducts().stream()
                 .filter(p -> p.getId() == id)
                 .findFirst()

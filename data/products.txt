@@ -1,8 +1,11 @@
-4,Whole Wheat Bread,Freshly baked whole wheat bread with a soft texture and nutty flavor.,Bread,150.0,50,50,50,1747248213833_qdfgaadg.png
+4,Whole Wheat Bread,Freshly baked whole wheat bread with a soft texture and nutty flavor.Rich, buttery brioche loaf with a soft, fluffy interior, perfect for gourmet sandwiches.,Bread,150.0,50,50,50,1747248213833_qdfgaadg.png
 5,Vanilla Custard Pastry,Flaky pastry filled with rich vanilla custard and topped with icing.,Pastry,120.0,30,30,30,1747249582954_Vanilla_Custard_Pastry.png
 8,Oatmeal Raisin Cookie,Chewy oatmeal cookies packed with sweet raisins.,Cookie,50.0,100,100,100,1747250598072_Oatmeal_Raisin_Cookie.png
 9,Vanilla Custard Pastry,Flaky pastry filled with rich vanilla custard and topped with icing.,Pastry,120.0,30,30,30,1747250668686_Vanilla_Custard_Pastry.png
-10,Sourdough Baguette,Handcrafted sourdough baguette with a crispy crust and tangy flavor, made with organic flour.,Bread,350.0,20,20,20,1747250767821_Sourdough_Baguette.png
 10,SDFASD,ADFGADFG,Bread,32432.0,234,234,23423,1747251218731_SDFASD.png
 11,adfgdf,adfgadfg,Cake,345.0,3434,345,3453,1747251898464_adfgdf.png
 12,sfghsfgf,sfghsfgh,Cake,4564.0,45,54,44,1747252159163_sfghsfgf.png
+13,rwghsfgh,srgfhsfgh,Cake,34345.0,353553,3553,3553,1747252657840_rwghsfgh.png
+1|||dfgdfgsdfg|||Rich, buttery brioche loaf with a soft, fluffy interior, perfect for gourmet sandwiches.Rich, buttery brioche loaf with a soft, fluffy interior, perfect for gourmet sandwiches.|||Bread|||456546.0|||45654|||54654|||54654|||1747253267408_dfgdfgsdfg.png
+2|||sfghsfgh|||sfghsfghsfghsfghsfghsfhsfhsfgsfghsfhsfghsfghsfghsfghsfghsfghsfhsfhsfgsfghsfhsfghsfghsfghsfghsfghsfghsfhsfhsfgsfghsfhsfghsfghsfghsfghsfghsfghsfhsfhsfgsfghsfhsfgh|||Cake|||4554.0|||45634|||3463|||346|||1747253294734_sfghsfgh.png
+3|||Cake|||Rich, buttery brioche loaf with a soft, fluffy interior, perfect for gourmet sandwiches.|||Bread|||120.0|||30|||30|||30|||1747253351843_Cake.png
