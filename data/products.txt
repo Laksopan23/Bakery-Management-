@@ -1,4 +1,2 @@
-1,jhasbf,dbadfg,Pastry,2342.0,234234,234322,234180,1747118697206_adjusted_character_image.png
-2,wsef,wefwef,Cake,3443.0,232433,3230,2249,1747118863913_adjusted_character_image.png
-3,sdvfsdf,sdfgsadfg,Cake,23423.0,234343,3424,23423,1747142646359_adjusted_character_image.png
-4,Cake,Nice Cake,Cake,2500.0,10,10,10,1747231531539_pngimg.com - cake_PNG97017.png
+4,Whole Wheat Bread,Freshly baked whole wheat bread with a soft texture and nutty flavor.,Bread,150.0,50,50,50,1747248213833_qdfgaadg.png
+5,Vanilla Custard Pastry,Flaky pastry filled with rich vanilla custard and topped with icing.,Pastry,120.0,30,30,30,1747249582954_Vanilla_Custard_Pastry.png

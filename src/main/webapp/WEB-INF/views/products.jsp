@@ -55,7 +55,9 @@
                                         <td>
                                             <c:if test="${not empty product.image}">
                                                 <img src="${pageContext.request.contextPath}/resources/images/products/${product.image}" 
-                                                     alt="${product.name}" class="img-fluid rounded" style="max-width: 100px; max-height: 100px;">
+                                                     alt="${product.name}" 
+                                                     class="img-fluid rounded product-image" 
+                                                     style="max-width: 150px; max-height: 150px; object-fit: contain;">
                                             </c:if>
                                         </td>
                                         <td class="text-center">
@@ -111,8 +113,13 @@
         padding: 0.25rem 0.5rem;
         font-size: 0.875rem;
     }
-    .img-fluid {
-        object-fit: cover;
+    .product-image {
+        transition: transform 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .product-image:hover {
+        transform: scale(1.1);
+        cursor: pointer;
     }
     @media (max-width: 768px) {
         .table-responsive {
@@ -121,6 +128,10 @@
         .btn-group .btn {
             padding: 0.2rem 0.4rem;
             font-size: 0.75rem;
+        }
+        .product-image {
+            max-width: 100px !important;
+            max-height: 100px !important;
         }
     }
 </style>

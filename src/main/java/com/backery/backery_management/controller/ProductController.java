@@ -1,12 +1,23 @@
 package com.backery.backery_management.controller;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -45,10 +56,150 @@ public class ProductController {
     private UserService userService; // Add this
 
     private static final String UPLOAD_DIR = "src/main/webapp/resources/images/products/";
+    private static final long MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB limit
+    private static final String[] ALLOWED_IMAGE_TYPES = {
+        "image/jpeg",
+        "image/jpg",
+        "image/pjpeg", // Progressive JPEG
+        "image/x-jpeg", // Alternative JPEG MIME type
+        "image/png",
+        "image/gif"
+    };
+    private static final int MAX_IMAGE_DIMENSION = 2000; // Maximum dimension for width or height
+    private static final float IMAGE_QUALITY = 0.9f; // 90% quality for JPEG
+
+    private boolean isValidImageType(String contentType) {
+        if (contentType == null) {
+            return false;
+        }
+        String normalizedType = contentType.toLowerCase();
+        for (String type : ALLOWED_IMAGE_TYPES) {
+            if (type.equals(normalizedType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isValidImageExtension(String filename) {
+        if (filename == null) {
+            return false;
+        }
+        String lowerFilename = filename.toLowerCase();
+        return lowerFilename.endsWith(".jpg")
+                || lowerFilename.endsWith(".jpeg")
+                || lowerFilename.endsWith(".jpe")
+                || // Alternative JPG extension
+                lowerFilename.endsWith(".png")
+                || lowerFilename.endsWith(".gif");
+    }
+
+    private String getImageFormat(String contentType, String filename) {
+        if (contentType != null) {
+            String type = contentType.toLowerCase();
+            if (type.contains("jpeg") || type.contains("jpg")) {
+                return "JPEG";
+            } else if (type.contains("png")) {
+                return "PNG";
+            } else if (type.contains("gif")) {
+                return "GIF";
+            }
+        }
+
+        // Fallback to filename extension
+        if (filename != null) {
+            String lowerFilename = filename.toLowerCase();
+            if (lowerFilename.endsWith(".jpg") || lowerFilename.endsWith(".jpeg") || lowerFilename.endsWith(".jpe")) {
+                return "JPEG";
+            } else if (lowerFilename.endsWith(".png")) {
+                return "PNG";
+            } else if (lowerFilename.endsWith(".gif")) {
+                return "GIF";
+            }
+        }
+
+        return "JPEG"; // Default to JPEG
+    }
+
+    private void optimizeImage(MultipartFile file, Path targetPath) throws IOException {
+        BufferedImage originalImage = ImageIO.read(file.getInputStream());
+        if (originalImage == null) {
+            throw new IOException("Invalid image format");
+        }
+
+        // Calculate new dimensions while maintaining aspect ratio
+        int originalWidth = originalImage.getWidth();
+        int originalHeight = originalImage.getHeight();
+        int newWidth = originalWidth;
+        int newHeight = originalHeight;
+
+        if (originalWidth > MAX_IMAGE_DIMENSION || originalHeight > MAX_IMAGE_DIMENSION) {
+            if (originalWidth > originalHeight) {
+                newWidth = MAX_IMAGE_DIMENSION;
+                newHeight = (int) ((double) originalHeight / originalWidth * MAX_IMAGE_DIMENSION);
+            } else {
+                newHeight = MAX_IMAGE_DIMENSION;
+                newWidth = (int) ((double) originalWidth / originalHeight * MAX_IMAGE_DIMENSION);
+            }
+        }
+
+        // Create new image with calculated dimensions
+        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, originalImage.getType());
+        Graphics2D g = resizedImage.createGraphics();
+
+        // Set rendering hints for better quality
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+        g.dispose();
+
+        // Get the image format
+        String format = getImageFormat(file.getContentType(), file.getOriginalFilename());
+
+        // Save the optimized image
+        if (format.equals("JPEG")) {
+            // For JPEG, we can control quality
+            Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpeg");
+            ImageWriter writer = writers.next();
+            ImageWriteParam param = writer.getDefaultWriteParam();
+            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            param.setCompressionQuality(IMAGE_QUALITY);
+
+            ImageOutputStream output = ImageIO.createImageOutputStream(targetPath.toFile());
+            writer.setOutput(output);
+            writer.write(null, new IIOImage(resizedImage, null, null), param);
+            writer.dispose();
+            output.close();
+        } else {
+            // For PNG and GIF, we just save as is
+            ImageIO.write(resizedImage, format, targetPath.toFile());
+        }
+    }
 
     @GetMapping
-    public String showProducts(Model model) {
-        model.addAttribute("products", productService.getAllProducts());
+    public String showProducts(Model model, HttpSession session) {
+        System.out.println("ProductController: Showing products page");
+
+        // Check if user is admin
+        String role = (String) session.getAttribute("role");
+        if (!"Admin".equals(role)) {
+            System.out.println("ProductController: User is not admin, redirecting to home");
+            return "redirect:/";
+        }
+
+        List<Product> products = productService.getAllProducts();
+        System.out.println("ProductController: Retrieved " + (products != null ? products.size() : 0) + " products");
+
+        if (products == null || products.isEmpty()) {
+            System.out.println("ProductController: No products found");
+            model.addAttribute("products", new ArrayList<>());
+        } else {
+            System.out.println("ProductController: Adding products to model");
+            model.addAttribute("products", products);
+        }
+
         return "products";
     }
 
@@ -68,7 +219,21 @@ public class ProductController {
             @RequestParam("initialStock") String initialStockStr,
             @RequestParam("currentStock") String currentStockStr,
             @RequestParam("image") MultipartFile image,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            HttpSession session) {
+
+        // Check if user is admin
+        String role = (String) session.getAttribute("role");
+        if (!"Admin".equals(role)) {
+            System.out.println("ProductController: User is not admin, redirecting to home");
+            return "redirect:/";
+        }
+
+        System.out.println("ProductController: Adding new product");
+        System.out.println("Name: " + name);
+        System.out.println("Category: " + category);
+        System.out.println("Price: " + priceStr);
+
         double price;
         int quantityAvailable;
         int initialStock;
@@ -79,19 +244,26 @@ public class ProductController {
             initialStock = initialStockStr.isEmpty() ? 0 : Integer.parseInt(initialStockStr);
             currentStock = currentStockStr.isEmpty() ? 0 : Integer.parseInt(currentStockStr);
         } catch (NumberFormatException e) {
+            System.err.println("Error parsing numeric values: " + e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid price, quantity, initial stock, or current stock format.");
             return "redirect:/products/add";
         }
 
         String imageName = "";
         if (!image.isEmpty()) {
+            // Check file size
+            if (image.getSize() > MAX_FILE_SIZE) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Image size exceeds 20MB limit.");
+                return "redirect:/products/add";
+            }
+
+            // Check file type
             String contentType = image.getContentType();
             String originalFilename = image.getOriginalFilename();
-            boolean isPng = (contentType != null && contentType.equals("image/png"))
-                    || (originalFilename != null && originalFilename.toLowerCase().endsWith(".png"));
 
-            if (!isPng) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Invalid file format. Only PNG files are allowed.");
+            if (!isValidImageType(contentType) || !isValidImageExtension(originalFilename)) {
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "Invalid file format. Allowed formats: JPG, JPEG, PNG, and GIF files.");
                 return "redirect:/products/add";
             }
 
@@ -100,20 +272,29 @@ public class ProductController {
                 if (!uploadDir.exists()) {
                     uploadDir.mkdirs();
                 }
-                imageName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
+
+                // Generate unique filename with original extension
+                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                imageName = System.currentTimeMillis() + "_" + name.replaceAll("[^a-zA-Z0-9]", "_") + extension;
+
                 Path filePath = Paths.get(UPLOAD_DIR, imageName);
-                Files.write(filePath, image.getBytes());
+                optimizeImage(image, filePath);
+                System.out.println("ProductController: Saved optimized image: " + imageName);
             } catch (IOException e) {
                 e.printStackTrace();
-                redirectAttributes.addFlashAttribute("errorMessage", "Error uploading image.");
+                redirectAttributes.addFlashAttribute("errorMessage", "Error processing image. Please ensure it's a valid image file.");
                 return "redirect:/products/add";
             }
         }
 
         Product product = new Product(0, name, description, category, price, quantityAvailable, initialStock, currentStock, imageName);
+        System.out.println("ProductController: Created product object: " + product.toString());
+
         if (productService.addProduct(product)) {
+            System.out.println("ProductController: Product added successfully");
             redirectAttributes.addFlashAttribute("successMessage", "Product added successfully!");
         } else {
+            System.out.println("ProductController: Failed to add product");
             redirectAttributes.addFlashAttribute("errorMessage", "Price or quantity cannot be less than 0.");
             return "redirect:/products/add";
         }
@@ -160,13 +341,18 @@ public class ProductController {
 
         String imageName = existingImage != null ? existingImage : "";
         if (!image.isEmpty()) {
+            // Check file size
+            if (image.getSize() > MAX_FILE_SIZE) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Image size exceeds 20MB limit.");
+                return "redirect:/products/edit/" + id;
+            }
+
+            // Check file type
             String contentType = image.getContentType();
             String originalFilename = image.getOriginalFilename();
-            boolean isPng = (contentType != null && contentType.equals("image/png"))
-                    || (originalFilename != null && originalFilename.toLowerCase().endsWith(".png"));
 
-            if (!isPng) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Invalid file format. Only PNG files are allowed.");
+            if (!isValidImageType(contentType) || !isValidImageExtension(originalFilename)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Invalid file format. Only JPG, JPEG, PNG, and GIF files are allowed.");
                 return "redirect:/products/edit/" + id;
             }
 
@@ -175,16 +361,22 @@ public class ProductController {
                 if (!uploadDir.exists()) {
                     uploadDir.mkdirs();
                 }
-                imageName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
+
+                // Generate unique filename with original extension
+                String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                imageName = System.currentTimeMillis() + "_" + name.replaceAll("[^a-zA-Z0-9]", "_") + extension;
+
                 Path filePath = Paths.get(UPLOAD_DIR, imageName);
-                Files.write(filePath, image.getBytes());
+                optimizeImage(image, filePath);
+
+                // Delete old image if it exists
                 if (existingImage != null && !existingImage.isEmpty()) {
                     Path oldFilePath = Paths.get(UPLOAD_DIR, existingImage);
                     Files.deleteIfExists(oldFilePath);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                redirectAttributes.addFlashAttribute("errorMessage", "Error uploading new image.");
+                redirectAttributes.addFlashAttribute("errorMessage", "Error processing image.");
                 return "redirect:/products/edit/" + id;
             }
         }
