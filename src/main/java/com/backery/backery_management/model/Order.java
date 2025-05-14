@@ -7,6 +7,15 @@ public class Order {
     private int productId;
     private int quantity;
 
+    // Delivery details
+    private String fullName;
+    private String phone;
+    private String email;
+    private String address;
+    private String city;
+    private String postalCode;
+    private String deliveryNotes;
+
     public Order(int id, int userId, int productId, int quantity) {
         this.id = id;
         this.userId = userId;
@@ -47,8 +56,79 @@ public class Order {
         this.quantity = quantity;
     }
 
+    // Delivery details getters and setters
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    public String getDeliveryNotes() {
+        return deliveryNotes;
+    }
+
+    public void setDeliveryNotes(String deliveryNotes) {
+        this.deliveryNotes = deliveryNotes;
+    }
+
+    public void setDeliveryDetails(String fullName, String phone, String email,
+            String address, String city, String postalCode,
+            String deliveryNotes) {
+        this.fullName = fullName;
+        this.phone = phone;
+        this.email = email;
+        this.address = address;
+        this.city = city;
+        this.postalCode = postalCode;
+        this.deliveryNotes = deliveryNotes;
+    }
+
     @Override
     public String toString() {
-        return id + "," + userId + "," + productId + "," + quantity;
+        return id + "," + userId + "," + productId + "," + quantity + ","
+                + fullName + "," + phone + "," + email + "," + address + ","
+                + city + "," + postalCode + "," + (deliveryNotes != null ? deliveryNotes : "");
     }
 }

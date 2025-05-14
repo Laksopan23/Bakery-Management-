@@ -72,7 +72,15 @@ public class OrderController {
             @RequestParam("userId") int userId,
             @RequestParam("productId") int productId,
             @RequestParam("quantity") int quantity,
+            @RequestParam("fullName") String fullName,
+            @RequestParam("phone") String phone,
+            @RequestParam("email") String email,
+            @RequestParam("address") String address,
+            @RequestParam("city") String city,
+            @RequestParam("postalCode") String postalCode,
+            @RequestParam(value = "deliveryNotes", required = false) String deliveryNotes,
             RedirectAttributes redirectAttributes) {
+
         Product product = productService.getProductById(productId);
         if (product == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Product not found.");
@@ -90,7 +98,9 @@ public class OrderController {
                 .max()
                 .orElse(0) + 1;
 
+        // Create order with delivery details
         Order order = new Order(newOrderId, userId, productId, quantity);
+        order.setDeliveryDetails(fullName, phone, email, address, city, postalCode, deliveryNotes);
         orderService.addOrder(order);
 
         // Update product stock
@@ -98,7 +108,9 @@ public class OrderController {
         product.setCurrentStock(newStock);
         productService.updateProduct(product);
 
-        redirectAttributes.addFlashAttribute("successMessage", "Order placed successfully! Order ID: " + newOrderId);
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Order placed successfully! Order ID: " + newOrderId
+                + ". We will contact you shortly at " + phone + " for delivery confirmation.");
         return "redirect:/products/customer";
     }
 
