@@ -37,6 +37,9 @@ public class ProductController {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private UserService userService; // Add this
+
     private static final String UPLOAD_DIR = "src/main/webapp/resources/images/products/";
 
     @GetMapping
@@ -62,7 +65,6 @@ public class ProductController {
             @RequestParam("currentStock") String currentStockStr,
             @RequestParam("image") MultipartFile image,
             RedirectAttributes redirectAttributes) {
-        // Handle price, quantity, initial stock, and current stock parsing
         double price;
         int quantityAvailable;
         int initialStock;
@@ -77,7 +79,6 @@ public class ProductController {
             return "redirect:/products/add";
         }
 
-        // Validate image format (PNG only)
         String imageName = "";
         if (!image.isEmpty()) {
             String contentType = image.getContentType();
@@ -139,7 +140,6 @@ public class ProductController {
             @RequestParam("image") MultipartFile image,
             @RequestParam(value = "existingImage", required = false) String existingImage,
             RedirectAttributes redirectAttributes) {
-        // Handle price, quantity, initial stock, and current stock parsing
         double price;
         int quantityAvailable;
         int initialStock;
@@ -154,7 +154,6 @@ public class ProductController {
             return "redirect:/products/edit/" + id;
         }
 
-        // Validate image format (PNG only)
         String imageName = existingImage != null ? existingImage : "";
         if (!image.isEmpty()) {
             String contentType = image.getContentType();
@@ -219,7 +218,6 @@ public class ProductController {
             Model model) {
         List<Product> products = productService.getAllProducts();
 
-        // Apply search filter (by name or description)
         if (search != null && !search.trim().isEmpty()) {
             String searchLower = search.toLowerCase();
             products = products.stream()
@@ -228,14 +226,12 @@ public class ProductController {
                     .collect(Collectors.toList());
         }
 
-        // Apply category filter
         if (category != null && !category.trim().isEmpty() && !category.equals("All")) {
             products = products.stream()
                     .filter(p -> p.getCategory().equalsIgnoreCase(category))
                     .collect(Collectors.toList());
         }
 
-        // Add filtered products and categories to the model
         model.addAttribute("products", products);
         model.addAttribute("categories", new String[]{"All", "Bread", "Cake", "Pastry", "Cookie", "Other"});
         model.addAttribute("selectedCategory", category != null ? category : "All");
@@ -256,7 +252,12 @@ public class ProductController {
     }
 
     @GetMapping("/orders/place/{productId}")
-    public String placeOrder(@PathVariable("productId") int productId, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    public String placeOrder(
+            @PathVariable("productId") int productId,
+            @RequestParam(value = "quantity", defaultValue = "1") int quantity,
+            HttpSession session,
+            Model model,
+            RedirectAttributes redirectAttributes) {
         String username = (String) session.getAttribute("username");
         if (username == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Please login to place an order.");
@@ -272,9 +273,12 @@ public class ProductController {
             redirectAttributes.addFlashAttribute("errorMessage", "Product is out of stock.");
             return "redirect:/products/view/" + productId;
         }
+        if (quantity <= 0 || quantity > product.getCurrentStock()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please select a quantity between 1 and " + product.getCurrentStock() + ".");
+            return "redirect:/products/view/" + productId;
+        }
 
-        // Fetch user ID (assuming UserService can get user by username)
-        User user = new UserService().getUserByUsername(username); // Assuming UserService exists
+        User user = userService.getUserByUsername(username);
         if (user == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "User not found.");
             return "redirect:/";
@@ -282,6 +286,7 @@ public class ProductController {
 
         model.addAttribute("product", product);
         model.addAttribute("userId", user.getId());
+        model.addAttribute("quantity", quantity);
         return "order-confirmation";
     }
 }

@@ -14,6 +14,7 @@ public class Order {
         this.quantity = quantity;
     }
 
+    // Getters and Setters
     public int getId() {
         return id;
     }

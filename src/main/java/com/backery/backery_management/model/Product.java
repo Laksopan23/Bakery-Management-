@@ -12,7 +12,8 @@ public class Product {
     private int currentStock;
     private String image;
 
-    public Product(int id, String name, String description, String category, double price, int quantityAvailable, int initialStock, int currentStock, String image) {
+    public Product(int id, String name, String description, String category, double price, int quantityAvailable,
+            int initialStock, int currentStock, String image) {
         this.id = id;
         this.name = name != null ? name : "";
         this.description = description != null ? description : "";
@@ -24,6 +25,7 @@ public class Product {
         this.image = image != null ? image : "";
     }
 
+    // Getters and Setters
     public int getId() {
         return id;
     }
@@ -98,6 +100,7 @@ public class Product {
 
     @Override
     public String toString() {
-        return id + "," + name + "," + description + "," + category + "," + price + "," + quantityAvailable + "," + initialStock + "," + currentStock + "," + image;
+        return id + "," + name + "," + description + "," + category + "," + price + ","
+                + quantityAvailable + "," + initialStock + "," + currentStock + "," + image;
     }
 }

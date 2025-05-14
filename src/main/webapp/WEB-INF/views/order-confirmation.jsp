@@ -25,15 +25,14 @@
                         <p><strong>Category:</strong> ${product.category}</p>
                         <p><strong>Price:</strong> <fmt:formatNumber value="${product.price}" type="currency" currencyCode="LKR"/> per unit</p>
                         <p><strong>Available Stock:</strong> ${product.currentStock} units</p>
+                        <p><strong>Selected Quantity:</strong> ${quantity} units</p>
+                        <p><strong>Total Price:</strong> <fmt:formatNumber value="${product.price * quantity}" type="currency" currencyCode="LKR"/></p>
                     </div>
 
                     <form action="${pageContext.request.contextPath}/orders/confirm" method="post">
                         <input type="hidden" name="productId" value="${product.id}">
                         <input type="hidden" name="userId" value="${userId}">
-                        <div class="mb-3">
-                            <label for="quantity" class="form-label">Quantity:</label>
-                            <input type="number" class="form-control" id="quantity" name="quantity" min="1" max="${product.currentStock}" required>
-                        </div>
+                        <input type="hidden" name="quantity" value="${quantity}">
                         <button type="submit" class="btn btn-success w-100">Confirm Order</button>
                     </form>
                     <a href="${pageContext.request.contextPath}/products/view/${product.id}" class="btn btn-outline-secondary w-100 mt-2">Back to Product</a>
