@@ -114,7 +114,7 @@
                                         <h5 class="mb-0">${review.customerName}</h5>
                                         <div class="rating-display mb-2">
                                             <c:forEach begin="1" end="5" var="i">
-                                                <i class="bi bi-star${i <= review.rating ? '-fill text-warning' : ''}"></i>
+                                                <i class="bi ${i <= review.rating ? 'bi-star-fill' : 'bi-star'} text-warning"></i>
                                             </c:forEach>
                                         </div>
                                     </div>
@@ -146,7 +146,9 @@
     </div>
 </div>
 
-<!-- Edit Review Modal -->
+<jsp:include page="footer.jsp" />
+
+<!-- Edit Review Modal (moved to end of file) -->
 <div class="modal fade" id="editReviewModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -203,7 +205,7 @@
         color: #ffd700;
     }
     .rating-display {
-        font-size: 1.2rem;
+        font-size: 2rem;
     }
     .review-item:last-child {
         border-bottom: none !important;
@@ -218,6 +220,7 @@
 
 <script>
 function editReview(reviewId, customerName, rating, comment) {
+    console.log('Raw rating value:', rating); // Debug log
     const modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
     const form = document.getElementById('editReviewForm');
     
@@ -225,10 +228,18 @@ function editReview(reviewId, customerName, rating, comment) {
     form.action = `${pageContext.request.contextPath}/products/review/edit`;
     document.getElementById('editReviewId').value = reviewId;
     
-    // Set rating
-    const ratingInput = document.querySelector(`#edit-${rating}`);
+    // Clear all rating radio buttons first
+    for (let i = 1; i <= 5; i++) {
+        const radio = document.getElementById(`edit-${i}`);
+        if (radio) radio.checked = false;
+    }
+    // Trim and parse rating to ensure it's an integer
+    const ratingValue = parseInt(String(rating).trim(), 10);
+    const ratingInput = document.getElementById(`edit-${ratingValue}`);
     if (ratingInput) {
         ratingInput.checked = true;
+    } else {
+        console.log('Could not find radio for rating:', ratingValue);
     }
     
     // Set comment
@@ -236,6 +247,4 @@ function editReview(reviewId, customerName, rating, comment) {
     
     modal.show();
 }
-</script>
-
-<jsp:include page="footer.jsp" /> 
+</script> 
