@@ -53,6 +53,181 @@
             </div>
         </div>
     </div>
+
+    <!-- Reviews Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">Customer Reviews</h3>
+                        <c:if test="${not empty reviews}">
+                            <div class="text-end">
+                                <div class="h4 mb-0">
+                                    <c:set var="avgRating" value="${0}" />
+                                    <c:forEach var="review" items="${reviews}">
+                                        <c:set var="avgRating" value="${avgRating + review.rating}" />
+                                    </c:forEach>
+                                    <c:set var="avgRating" value="${avgRating / reviews.size()}" />
+                                    <fmt:formatNumber value="${avgRating}" pattern="0.0" />
+                                    <i class="bi bi-star-fill text-warning"></i>
+                                </div>
+                                <small class="text-muted">${reviews.size()} reviews</small>
+                            </div>
+                        </c:if>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Add Review Form -->
+                    <form action="${pageContext.request.contextPath}/products/${product.id}/review" method="post" class="mb-4">
+                        <div class="mb-3">
+                            <label for="customerName" class="form-label">Your Name</label>
+                            <input type="text" class="form-control" id="customerName" name="customerName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <div class="rating">
+                                <input type="radio" name="rating" value="5" id="5" required><label for="5">☆</label>
+                                <input type="radio" name="rating" value="4" id="4"><label for="4">☆</label>
+                                <input type="radio" name="rating" value="3" id="3"><label for="3">☆</label>
+                                <input type="radio" name="rating" value="2" id="2"><label for="2">☆</label>
+                                <input type="radio" name="rating" value="1" id="1"><label for="1">☆</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Your Review</label>
+                            <textarea class="form-control" id="comment" name="comment" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                    </form>
+
+                    <!-- Reviews List -->
+                    <div class="reviews-list">
+                        <c:if test="${empty reviews}">
+                            <p class="text-muted text-center">No reviews yet. Be the first to review this product!</p>
+                        </c:if>
+                        <p>Session customerName: ${sessionScope.customerName}</p>
+                        <c:forEach var="review" items="${reviews}">
+                            <p>Review by: ${review.customerName}</p>
+                            <div class="review-item border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <h5 class="mb-0">${review.customerName}</h5>
+                                        <div class="rating-display mb-2">
+                                            <c:forEach begin="1" end="5" var="i">
+                                                <i class="bi bi-star${i <= review.rating ? '-fill text-warning' : ''}"></i>
+                                            </c:forEach>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted d-block mb-2">${review.createdAt}</small>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" 
+                                                    onclick="editReview(${review.id}, '${review.customerName}', ${review.rating}, '${review.comment}')">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </button>
+                                            <a href="${pageContext.request.contextPath}/products/${product.id}/review/${review.id}/delete" 
+                                               class="btn btn-outline-danger"
+                                               onclick="return confirm('Are you sure you want to delete this review?')">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="mb-0">${review.comment}</p>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Edit Review Modal -->
+<div class="modal fade" id="editReviewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editReviewForm" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <div class="rating">
+                            <input type="radio" name="rating" value="5" id="edit-5" required><label for="edit-5">☆</label>
+                            <input type="radio" name="rating" value="4" id="edit-4"><label for="edit-4">☆</label>
+                            <input type="radio" name="rating" value="3" id="edit-3"><label for="edit-3">☆</label>
+                            <input type="radio" name="rating" value="2" id="edit-2"><label for="edit-2">☆</label>
+                            <input type="radio" name="rating" value="1" id="edit-1"><label for="edit-1">☆</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editComment" class="form-label">Your Review</label>
+                        <textarea class="form-control" id="editComment" name="comment" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+    .rating input {
+        display: none;
+    }
+    .rating label {
+        cursor: pointer;
+        font-size: 2rem;
+        color: #ddd;
+        padding: 0 0.1em;
+    }
+    .rating input:checked ~ label,
+    .rating label:hover,
+    .rating label:hover ~ label {
+        color: #ffd700;
+    }
+    .rating-display {
+        font-size: 1.2rem;
+    }
+    .review-item:last-child {
+        border-bottom: none !important;
+    }
+    .review-item {
+        transition: background-color 0.2s ease;
+    }
+    .review-item:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+
+<script>
+function editReview(reviewId, customerName, rating, comment) {
+    const modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
+    const form = document.getElementById('editReviewForm');
+    
+    // Set form action
+    form.action = `${window.location.pathname}/review/${reviewId}/edit`;
+    
+    // Set rating
+    document.querySelector(`#edit-${rating}`).checked = true;
+    
+    // Set comment
+    document.getElementById('editComment').value = comment;
+    
+    modal.show();
+}
+</script>
 
 <jsp:include page="footer.jsp" /> 

@@ -9,18 +9,26 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.backery.backery_management.model.Product;
 import com.backery.backery_management.service.ProductService;
+import com.backery.backery_management.dao.ReviewDAO;
+import com.backery.backery_management.model.Review;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/products")
@@ -28,6 +36,7 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
+    private final ReviewDAO reviewDAO = new ReviewDAO();
 
     private static final String UPLOAD_DIR = "src/main/webapp/resources/images/products/";
 
@@ -244,6 +253,88 @@ public class ProductController {
             return "redirect:/products/customer";
         }
         model.addAttribute("product", product);
+        model.addAttribute("reviews", reviewDAO.getReviewsByProductId(id));
         return "single-product";
+    }
+
+    @PostMapping("/{id}/review")
+    public String addReview(
+            @PathVariable("id") int productId,
+            @RequestParam("customerName") String customerName,
+            @RequestParam("rating") int rating,
+            @RequestParam("comment") String comment,
+            RedirectAttributes redirectAttributes) {
+        
+        if (rating < 1 || rating > 5) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid rating value.");
+            return "redirect:/products/view/" + productId;
+        }
+
+        Review review = new Review(0, productId, customerName, rating, comment, null);
+        if (reviewDAO.addReview(review)) {
+            redirectAttributes.addFlashAttribute("successMessage", "Review added successfully!");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to add review.");
+        }
+        return "redirect:/products/view/" + productId;
+    }
+
+    @PostMapping("/review/edit")
+    @ResponseBody
+    public ResponseEntity<?> editReview(@RequestParam int reviewId,
+                                      @RequestParam int rating,
+                                      @RequestParam String comment,
+                                      HttpSession session) {
+        String customerName = (String) session.getAttribute("customerName");
+        if (customerName == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Please login to edit reviews");
+        }
+
+        ReviewDAO reviewDAO = new ReviewDAO();
+        Review existingReview = reviewDAO.getReviewById(reviewId);
+        
+        if (existingReview == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Review not found");
+        }
+        
+        if (!existingReview.getCustomerName().equals(customerName)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You can only edit your own reviews");
+        }
+
+        existingReview.setRating(rating);
+        existingReview.setComment(comment);
+        
+        if (reviewDAO.updateReview(existingReview)) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update review");
+        }
+    }
+
+    @PostMapping("/review/delete")
+    @ResponseBody
+    public ResponseEntity<?> deleteReview(@RequestParam int reviewId,
+                                        HttpSession session) {
+        String customerName = (String) session.getAttribute("customerName");
+        if (customerName == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Please login to delete reviews");
+        }
+
+        ReviewDAO reviewDAO = new ReviewDAO();
+        Review existingReview = reviewDAO.getReviewById(reviewId);
+        
+        if (existingReview == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Review not found");
+        }
+        
+        if (!existingReview.getCustomerName().equals(customerName)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You can only delete your own reviews");
+        }
+        
+        if (reviewDAO.deleteReview(reviewId)) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete review");
+        }
     }
 }
