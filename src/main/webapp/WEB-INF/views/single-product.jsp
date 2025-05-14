@@ -106,9 +106,8 @@
                         <c:if test="${empty reviews}">
                             <p class="text-muted text-center">No reviews yet. Be the first to review this product!</p>
                         </c:if>
-                        <p>Session customerName: ${sessionScope.customerName}</p>
                         <c:forEach var="review" items="${reviews}">
-                            <p>Review by: ${review.customerName}</p>
+                            <p>Review by: '${review.customerName}' | Session: '${sessionScope.customerName}'</p>
                             <div class="review-item border-bottom pb-3 mb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <div>
@@ -121,17 +120,19 @@
                                     </div>
                                     <div class="text-end">
                                         <small class="text-muted d-block mb-2">${review.createdAt}</small>
-                                        <div class="btn-group btn-group-sm">
-                                            <button type="button" class="btn btn-outline-primary" 
-                                                    onclick="editReview(${review.id}, '${review.customerName}', ${review.rating}, '${review.comment}')">
-                                                <i class="bi bi-pencil"></i> Edit
-                                            </button>
-                                            <a href="${pageContext.request.contextPath}/products/${product.id}/review/${review.id}/delete" 
-                                               class="btn btn-outline-danger"
-                                               onclick="return confirm('Are you sure you want to delete this review?')">
-                                                <i class="bi bi-trash"></i> Delete
-                                            </a>
-                                        </div>
+                                        <c:if test="${review.customerName eq sessionScope.customerName}">
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-primary" 
+                                                        onclick="editReview(${review.id}, '${review.customerName}', ${review.rating}, '${review.comment}')">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </button>
+                                                <a href="${pageContext.request.contextPath}/products/${product.id}/review/${review.id}/delete" 
+                                                   class="btn btn-outline-danger"
+                                                   onclick="return confirm('Are you sure you want to delete this review?')">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </a>
+                                            </div>
+                                        </c:if>
                                     </div>
                                 </div>
                                 <p class="mb-0">${review.comment}</p>
