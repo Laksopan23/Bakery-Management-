@@ -61,7 +61,7 @@
                             <!-- Customer Details Form -->
                             <div class="mb-4">
                                 <h4 class="border-bottom pb-2">Delivery Details</h4>
-                                <form action="${pageContext.request.contextPath}/orders/confirm" method="post" class="mt-4">
+                                <form id="orderForm" action="${pageContext.request.contextPath}/orders/confirm" method="post" class="mt-4" novalidate>
                                     <input type="hidden" name="productId" value="${product.id}">
                                     <input type="hidden" name="userId" value="${userId}">
                                     <input type="hidden" name="quantity" value="${quantity}">
@@ -69,39 +69,72 @@
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="fullName" class="form-label">Full Name *</label>
-                                            <input type="text" class="form-control" id="fullName" name="fullName" required>
+                                            <input type="text" class="form-control" id="fullName" name="fullName" 
+                                                   pattern="[A-Za-z\s]{2,50}" required
+                                                   title="Please enter a valid name (2-50 characters, letters and spaces only)">
+                                            <div class="invalid-feedback">
+                                                Please enter a valid name (2-50 characters, letters and spaces only)
+                                            </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="phone" class="form-label">Phone Number *</label>
-                                            <input type="tel" class="form-control" id="phone" name="phone" required>
+                                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                                   pattern="[0-9]{10}" required
+                                                   title="Please enter a valid 10-digit phone number">
+                                            <div class="invalid-feedback">
+                                                Please enter a valid 10-digit phone number
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="email" class="form-label">Email Address *</label>
-                                        <input type="email" class="form-control" id="email" name="email" required>
+                                        <input type="email" class="form-control" id="email" name="email" 
+                                               pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" required
+                                               title="Please enter a valid email address">
+                                        <div class="invalid-feedback">
+                                            Please enter a valid email address
+                                        </div>
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="address" class="form-label">Delivery Address *</label>
-                                        <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                                        <textarea class="form-control" id="address" name="address" rows="3" 
+                                                  minlength="10" maxlength="200" required></textarea>
+                                        <div class="invalid-feedback">
+                                            Please enter a valid address (10-200 characters)
+                                        </div>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="city" class="form-label">City *</label>
-                                            <input type="text" class="form-control" id="city" name="city" required>
+                                            <input type="text" class="form-control" id="city" name="city" 
+                                                   pattern="[A-Za-z\s]{2,50}" required
+                                                   title="Please enter a valid city name">
+                                            <div class="invalid-feedback">
+                                                Please enter a valid city name
+                                            </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="postalCode" class="form-label">Postal Code *</label>
-                                            <input type="text" class="form-control" id="postalCode" name="postalCode" required>
+                                            <input type="text" class="form-control" id="postalCode" name="postalCode" 
+                                                   pattern="[0-9]{5}" required
+                                                   title="Please enter a valid 5-digit postal code">
+                                            <div class="invalid-feedback">
+                                                Please enter a valid 5-digit postal code
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="deliveryNotes" class="form-label">Delivery Notes (Optional)</label>
                                         <textarea class="form-control" id="deliveryNotes" name="deliveryNotes" rows="2" 
+                                                  maxlength="200"
                                                   placeholder="Any special instructions for delivery..."></textarea>
+                                        <div class="invalid-feedback">
+                                            Delivery notes cannot exceed 200 characters
+                                        </div>
                                     </div>
 
                                     <div class="mb-3">
@@ -110,6 +143,9 @@
                                             <label class="form-check-label" for="terms">
                                                 I agree to the terms and conditions of delivery
                                             </label>
+                                            <div class="invalid-feedback">
+                                                You must agree to the terms and conditions
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -131,5 +167,50 @@
         </div>
     </div>
 </div>
+
+<!-- Form Validation Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('orderForm');
+    
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Real-time validation for phone number
+    const phoneInput = document.getElementById('phone');
+    phoneInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value.length > 10) {
+            this.value = this.value.slice(0, 10);
+        }
+    });
+
+    // Real-time validation for postal code
+    const postalCodeInput = document.getElementById('postalCode');
+    postalCodeInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value.length > 5) {
+            this.value = this.value.slice(0, 5);
+        }
+    });
+
+    // Real-time validation for full name
+    const fullNameInput = document.getElementById('fullName');
+    fullNameInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^A-Za-z\s]/g, '');
+    });
+
+    // Real-time validation for city
+    const cityInput = document.getElementById('city');
+    cityInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^A-Za-z\s]/g, '');
+    });
+});
+</script>
 
 <jsp:include page="footer.jsp" />

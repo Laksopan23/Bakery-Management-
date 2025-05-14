@@ -1,5 +1,7 @@
 package com.backery.backery_management.controller;
 
+import java.util.regex.Pattern;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,6 +32,13 @@ public class OrderController {
 
     @Autowired
     private UserService userService;
+
+    // Validation patterns
+    private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z\\s]{2,50}$");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9]{10}$");
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    private static final Pattern CITY_PATTERN = Pattern.compile("^[A-Za-z\\s]{2,50}$");
+    private static final Pattern POSTAL_CODE_PATTERN = Pattern.compile("^[0-9]{5}$");
 
     @GetMapping
     public String showOrders(Model model) {
@@ -81,6 +90,7 @@ public class OrderController {
             @RequestParam(value = "deliveryNotes", required = false) String deliveryNotes,
             RedirectAttributes redirectAttributes) {
 
+        // Validate product and quantity
         Product product = productService.getProductById(productId);
         if (product == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Product not found.");
@@ -90,6 +100,42 @@ public class OrderController {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Invalid quantity. Please select between 1 and " + product.getCurrentStock() + " units.");
             return "redirect:/products/view/" + productId;
+        }
+
+        // Validate delivery details
+        if (!NAME_PATTERN.matcher(fullName).matches()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid full name format.");
+            return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
+        }
+
+        if (!PHONE_PATTERN.matcher(phone).matches()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid phone number format. Please enter 10 digits.");
+            return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
+        }
+
+        if (!EMAIL_PATTERN.matcher(email).matches()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid email format.");
+            return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
+        }
+
+        if (address.length() < 10 || address.length() > 200) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Address must be between 10 and 200 characters.");
+            return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
+        }
+
+        if (!CITY_PATTERN.matcher(city).matches()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid city name format.");
+            return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
+        }
+
+        if (!POSTAL_CODE_PATTERN.matcher(postalCode).matches()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid postal code format. Please enter 5 digits.");
+            return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
+        }
+
+        if (deliveryNotes != null && deliveryNotes.length() > 200) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Delivery notes cannot exceed 200 characters.");
+            return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
         }
 
         // Generate new order ID (simple increment)
