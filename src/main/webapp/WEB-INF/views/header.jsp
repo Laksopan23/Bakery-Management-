@@ -8,7 +8,7 @@
     <title>Bakery Management</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <style>
         .navbar {
@@ -51,6 +51,16 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/vendors">Vendors</a>
                         </li>
+                    </c:if>
+                    
+                    <c:if test="${sessionScope.role == 'User'}">
+                    <li class="nav-item">
+                        <a class="nav-link" href="${pageContext.request.contextPath}/products/customer">Shop</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="${pageContext.request.contextPath}/orders/customer/history">My Orders</a>
+                    </li>
+                    
                     </c:if>
                     <li class="nav-item">
                         <a class="nav-link" href="${pageContext.request.contextPath}/logout">Logout</a>

@@ -13,9 +13,10 @@ public class User {
         this.username = username != null ? username : "";
         this.password = password != null ? password : "";
         this.email = email != null ? email : "";
-        this.role = role != null ? role : "User"; // Default to "User"
+        this.role = role != null ? role : "User";
     }
 
+    // Getters and Setters
     public int getId() {
         return id;
     }
