@@ -4,3 +4,4 @@
 4,Vijay,Vijay@123,vijay@gmail.com,User
 5,Raja,Raja@123,raja@gmail.com,Admin
 6,admin,123,admin@gmail.com,User
+7,Saji,Kaji@123,saji@gmail.com,User

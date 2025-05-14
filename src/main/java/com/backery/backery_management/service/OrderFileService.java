@@ -1,6 +1,8 @@
 package com.backery.backery_management.service;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -8,6 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 
@@ -87,5 +91,67 @@ public class OrderFileService {
                 writer.println("\nUser ID: " + order.getUserId());
             }
         }
+    }
+
+    public List<String> getAllOrders() {
+        List<String> orders = new ArrayList<>();
+        String allOrdersFileName = String.format("%s/all_orders.txt", ORDERS_DIRECTORY);
+        File allOrdersFile = new File(allOrdersFileName);
+
+        if (!allOrdersFile.exists()) {
+            return orders;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(allOrdersFile))) {
+            StringBuilder currentOrder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("=".repeat(80))) {
+                    if (currentOrder.length() > 0) {
+                        orders.add(currentOrder.toString());
+                        currentOrder = new StringBuilder();
+                    }
+                } else {
+                    currentOrder.append(line).append("\n");
+                }
+            }
+            if (currentOrder.length() > 0) {
+                orders.add(currentOrder.toString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return orders;
+    }
+
+    public List<String> getUserOrders(int userId) {
+        List<String> orders = new ArrayList<>();
+        String userFileName = String.format("%s/user_%d_orders.txt", ORDERS_DIRECTORY, userId);
+        File userFile = new File(userFileName);
+
+        if (!userFile.exists()) {
+            return orders;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(userFile))) {
+            StringBuilder currentOrder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("=".repeat(80))) {
+                    if (currentOrder.length() > 0) {
+                        orders.add(currentOrder.toString());
+                        currentOrder = new StringBuilder();
+                    }
+                } else {
+                    currentOrder.append(line).append("\n");
+                }
+            }
+            if (currentOrder.length() > 0) {
+                orders.add(currentOrder.toString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return orders;
     }
 }
