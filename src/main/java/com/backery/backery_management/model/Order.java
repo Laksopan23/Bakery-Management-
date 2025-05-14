@@ -1,12 +1,17 @@
 package com.backery.backery_management.model;
 
+import java.time.LocalDateTime;
+
 public class Order {
 
     private int id;
     private int userId;
     private int productId;
     private int quantity;
+    private double price;
     private String status;
+    private String productName;
+    private LocalDateTime orderDate;
 
     // Delivery details
     private String fullName;
@@ -24,6 +29,7 @@ public class Order {
         this.productId = productId;
         this.quantity = quantity;
         this.status = "PENDING";
+        this.orderDate = LocalDateTime.now();
     }
 
     // Getters and Setters
@@ -59,12 +65,44 @@ public class Order {
         this.quantity = quantity;
     }
 
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public LocalDateTime getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(LocalDateTime orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
     // Delivery details getters and setters
@@ -122,14 +160,6 @@ public class Order {
 
     public void setDeliveryNotes(String deliveryNotes) {
         this.deliveryNotes = deliveryNotes;
-    }
-
-    public String getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
     }
 
     public void setDeliveryDetails(String fullName, String phone, String email,

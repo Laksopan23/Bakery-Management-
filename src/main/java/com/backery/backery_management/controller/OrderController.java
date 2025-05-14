@@ -1,5 +1,6 @@
 package com.backery.backery_management.controller;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.backery.backery_management.model.Order;
 import com.backery.backery_management.model.Product;
+import com.backery.backery_management.service.OrderFileService;
 import com.backery.backery_management.service.OrderService;
 import com.backery.backery_management.service.ProductService;
 import com.backery.backery_management.service.UserService;
@@ -32,6 +34,9 @@ public class OrderController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private OrderFileService orderFileService;
 
     // Validation patterns
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z\\s]{2,50}$");
@@ -150,6 +155,8 @@ public class OrderController {
         // Create order with delivery details
         Order order = new Order(newOrderId, userId, productId, quantity);
         order.setDeliveryDetails(fullName, phone, email, address, city, postalCode, deliveryNotes);
+        order.setPrice(product.getPrice());
+        order.setProductName(product.getName());
         orderService.addOrder(order);
 
         // Redirect to payment page
@@ -229,7 +236,11 @@ public class OrderController {
         // Update order with payment details
         order.setPaymentMethod(paymentMethod);
         order.setStatus("PAID");
+        order.setOrderDate(java.time.LocalDateTime.now());
         orderService.updateOrder(order);
+
+        // Save order to file
+        orderFileService.saveOrder(order);
 
         // Update product stock
         Product product = productService.getProductById(order.getProductId());
@@ -237,10 +248,60 @@ public class OrderController {
         product.setCurrentStock(newStock);
         productService.updateProduct(product);
 
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Payment successful! Order ID: " + orderId
-                + ". We will contact you shortly at " + order.getPhone() + " for delivery confirmation.");
-        return "redirect:/products/customer";
+        // Add order and product to model for success page
+        redirectAttributes.addFlashAttribute("order", order);
+        redirectAttributes.addFlashAttribute("product", product);
+        return "redirect:/orders/payment-success";
+    }
+
+    @GetMapping("/payment-success")
+    public String showPaymentSuccess(Model model) {
+        Order order = (Order) model.getAttribute("order");
+        if (order == null) {
+            return "redirect:/products/customer";
+        }
+        return "payment-success";
+    }
+
+    @GetMapping("/customer/history")
+    public String showCustomerOrders(Model model, HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            return "redirect:/";
+        }
+        int userId = userService.getUserByUsername(username).getId();
+        List<Order> orders = orderService.getOrdersByUserId(userId);
+
+        // Add product names to orders
+        for (Order order : orders) {
+            Product product = productService.getProductById(order.getProductId());
+            if (product != null) {
+                order.setProductName(product.getName());
+            }
+        }
+
+        model.addAttribute("orders", orders);
+        return "customer-orders";
+    }
+
+    @GetMapping("/admin/all")
+    public String showAllOrders(Model model) {
+        List<String> orders = orderFileService.getAllOrders();
+        model.addAttribute("orders", orders);
+        return "admin-orders";
+    }
+
+    @GetMapping("/my-orders")
+    public String showMyOrders(Model model, HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            return "redirect:/";
+        }
+
+        int userId = userService.getUserByUsername(username).getId();
+        List<String> orders = orderFileService.getUserOrders(userId);
+        model.addAttribute("orders", orders);
+        return "my-orders";
     }
 
     // Luhn algorithm for card validation
@@ -297,18 +358,5 @@ public class OrderController {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    @GetMapping("/customer/history")
-    public String showCustomerOrders(Model model, HttpSession session) {
-        String username = (String) session.getAttribute("username");
-        if (username == null) {
-            return "redirect:/";
-        }
-        int userId = userService.getUserByUsername(username).getId();
-        model.addAttribute("orders", orderService.getAllOrders().stream()
-                .filter(o -> o.getUserId() == userId)
-                .toList());
-        return "customer-orders";
     }
 }
