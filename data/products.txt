@@ -2,3 +2,4 @@
 5,Vanilla Custard Pastry,Flaky pastry filled with rich vanilla custard and topped with icing.,Pastry,120.0,30,30,30,1747249582954_Vanilla_Custard_Pastry.png
 8,Oatmeal Raisin Cookie,Chewy oatmeal cookies packed with sweet raisins.,Cookie,50.0,100,100,90,1747250598072_Oatmeal_Raisin_Cookie.png
 9,Vanilla Custard Pastry,Flaky pastry filled with rich vanilla custard and topped with icing.,Pastry,120.0,30,30,30,1747250668686_Vanilla_Custard_Pastry.png
+10,Sourdough Baguette,Handcrafted sourdough baguette with a crispy crust and tangy flavor, made with organic flour.,Bread,350.0,20,20,20,1747250767821_Sourdough_Baguette.png

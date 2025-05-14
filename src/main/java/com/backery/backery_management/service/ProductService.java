@@ -33,12 +33,15 @@ public class ProductService {
             Stack<Product> productStack = new Stack<>();
             for (Product p : products) {
                 productStack.push(p);
+                System.out.println("ProductService: Added product to stack: " + p.getName() + " (ID: " + p.getId() + ")");
             }
 
             // Step 3: Pop from Stack to reverse order for display (highest price first)
             List<Product> sortedProducts = new ArrayList<>();
             while (!productStack.isEmpty()) {
-                sortedProducts.add(productStack.pop());
+                Product p = productStack.pop();
+                sortedProducts.add(p);
+                System.out.println("ProductService: Added to final list: " + p.getName() + " (ID: " + p.getId() + ")");
             }
 
             System.out.println("ProductService: Returning " + sortedProducts.size() + " sorted products");
