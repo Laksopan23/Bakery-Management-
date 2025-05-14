@@ -53,6 +53,7 @@ public class AuthController {
             RedirectAttributes redirectAttributes) {
         if (userService.authenticateUser(username, password)) {
             session.setAttribute("username", username);
+            session.setAttribute("customerName", username);
             User user = userService.getUserByUsername(username);
             if (user != null) {
                 session.setAttribute("role", user.getRole());
