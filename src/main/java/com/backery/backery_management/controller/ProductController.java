@@ -22,16 +22,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.backery.backery_management.dao.ReviewDAO;
 import com.backery.backery_management.model.Product;
-
+import com.backery.backery_management.model.Review;
 import com.backery.backery_management.model.User;
 import com.backery.backery_management.service.OrderService;
-
-import com.backery.backery_management.model.Review;
-
 import com.backery.backery_management.service.ProductService;
 import com.backery.backery_management.service.UserService;
-
-import jakarta.servlet.http.HttpSession;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -261,7 +256,6 @@ public class ProductController {
         return "single-product";
     }
 
-
     @GetMapping("/orders/place/{productId}")
     public String placeOrder(
             @PathVariable("productId") int productId,
@@ -299,6 +293,7 @@ public class ProductController {
         model.addAttribute("userId", user.getId());
         model.addAttribute("quantity", quantity);
         return "order-confirmation";
+    }
 
     @PostMapping("/{id}/review")
     public String addReview(
@@ -307,7 +302,7 @@ public class ProductController {
             @RequestParam("rating") int rating,
             @RequestParam("comment") String comment,
             RedirectAttributes redirectAttributes) {
-        
+
         if (rating < 1 || rating > 5) {
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid rating value.");
             return "redirect:/products/view/" + productId;
@@ -323,12 +318,13 @@ public class ProductController {
     }
 
     @PostMapping("/review/edit")
-    public String editReview(@RequestParam int reviewId,
-                            @RequestParam int rating,
-                            @RequestParam String comment,
-                            @RequestParam int productId,
-                            HttpSession session,
-                            RedirectAttributes redirectAttributes) {
+    public String editReview(
+            @RequestParam int reviewId,
+            @RequestParam int rating,
+            @RequestParam String comment,
+            @RequestParam int productId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
         String customerName = (String) session.getAttribute("customerName");
         if (customerName == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Please login to edit reviews");
@@ -337,12 +333,12 @@ public class ProductController {
 
         ReviewDAO reviewDAO = new ReviewDAO();
         Review existingReview = reviewDAO.getReviewById(reviewId);
-        
+
         if (existingReview == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Review not found");
             return "redirect:/products/view/" + productId;
         }
-        
+
         if (!existingReview.getCustomerName().equals(customerName)) {
             redirectAttributes.addFlashAttribute("errorMessage", "You can only edit your own reviews");
             return "redirect:/products/view/" + productId;
@@ -350,7 +346,7 @@ public class ProductController {
 
         existingReview.setRating(rating);
         existingReview.setComment(comment);
-        
+
         if (reviewDAO.updateReview(existingReview)) {
             redirectAttributes.addFlashAttribute("successMessage", "Review updated successfully!");
         } else {
@@ -360,9 +356,10 @@ public class ProductController {
     }
 
     @PostMapping("/review/delete")
-    public String deleteReview(@RequestParam int reviewId,
-                              HttpSession session,
-                              RedirectAttributes redirectAttributes) {
+    public String deleteReview(
+            @RequestParam int reviewId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
         String customerName = (String) session.getAttribute("customerName");
         if (customerName == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Please login to delete reviews");
@@ -371,17 +368,17 @@ public class ProductController {
 
         ReviewDAO reviewDAO = new ReviewDAO();
         Review existingReview = reviewDAO.getReviewById(reviewId);
-        
+
         if (existingReview == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Review not found");
             return "redirect:/products/customer";
         }
-        
+
         if (!existingReview.getCustomerName().equals(customerName)) {
             redirectAttributes.addFlashAttribute("errorMessage", "You can only delete your own reviews");
             return "redirect:/products/customer";
         }
-        
+
         if (reviewDAO.deleteReview(reviewId)) {
             redirectAttributes.addFlashAttribute("successMessage", "Review deleted successfully!");
         } else {
@@ -394,6 +391,5 @@ public class ProductController {
     @ResponseBody
     public String testDelete() {
         return "Delete mapping works!";
-
     }
 }
