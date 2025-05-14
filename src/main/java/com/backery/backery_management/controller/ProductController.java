@@ -312,29 +312,39 @@ public class ProductController {
     }
 
     @PostMapping("/review/delete")
-    @ResponseBody
-    public ResponseEntity<?> deleteReview(@RequestParam int reviewId,
-                                        HttpSession session) {
+    public String deleteReview(@RequestParam int reviewId,
+                              HttpSession session,
+                              RedirectAttributes redirectAttributes) {
         String customerName = (String) session.getAttribute("customerName");
         if (customerName == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Please login to delete reviews");
+            redirectAttributes.addFlashAttribute("errorMessage", "Please login to delete reviews");
+            return "redirect:/products/customer";
         }
 
         ReviewDAO reviewDAO = new ReviewDAO();
         Review existingReview = reviewDAO.getReviewById(reviewId);
         
         if (existingReview == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Review not found");
+            redirectAttributes.addFlashAttribute("errorMessage", "Review not found");
+            return "redirect:/products/customer";
         }
         
         if (!existingReview.getCustomerName().equals(customerName)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You can only delete your own reviews");
+            redirectAttributes.addFlashAttribute("errorMessage", "You can only delete your own reviews");
+            return "redirect:/products/customer";
         }
         
         if (reviewDAO.deleteReview(reviewId)) {
-            return ResponseEntity.ok().build();
+            redirectAttributes.addFlashAttribute("successMessage", "Review deleted successfully!");
         } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete review");
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete review");
         }
+        return "redirect:/products/customer";
+    }
+
+    @GetMapping("/review/delete-test")
+    @ResponseBody
+    public String testDelete() {
+        return "Delete mapping works!";
     }
 }

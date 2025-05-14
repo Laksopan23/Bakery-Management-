@@ -123,14 +123,15 @@
                                         <c:if test="${review.customerName eq sessionScope.customerName}">
                                             <div class="btn-group btn-group-sm">
                                                 <button type="button" class="btn btn-outline-primary" 
-                                                        onclick="editReview(${review.id}, '${review.customerName}', ${review.rating}, '${review.comment}')">
+                                                        onclick="editReview('${review.id}', '${review.customerName}', '${review.rating}', '${review.comment}')">
                                                     <i class="bi bi-pencil"></i> Edit
                                                 </button>
-                                                <a href="${pageContext.request.contextPath}/products/${product.id}/review/${review.id}/delete" 
-                                                   class="btn btn-outline-danger"
-                                                   onclick="return confirm('Are you sure you want to delete this review?')">
-                                                    <i class="bi bi-trash"></i> Delete
-                                                </a>
+                                                <form action="${pageContext.request.contextPath}/products/review/delete" method="post" style="display:inline;">
+                                                    <input type="hidden" name="reviewId" value="${review.id}" />
+                                                    <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this review?')">
+                                                        <i class="bi bi-trash"></i> Delete
+                                                    </button>
+                                                </form>
                                             </div>
                                         </c:if>
                                     </div>
