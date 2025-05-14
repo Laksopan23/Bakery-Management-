@@ -155,6 +155,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="editReviewForm" method="post">
+                <input type="hidden" id="editReviewId" name="reviewId" />
+                <input type="hidden" id="editProductId" name="productId" value="${product.id}" />
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Rating</label>
@@ -219,11 +221,15 @@ function editReview(reviewId, customerName, rating, comment) {
     const modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
     const form = document.getElementById('editReviewForm');
     
-    // Set form action
-    form.action = `${window.location.pathname}/review/${reviewId}/edit`;
+    // Set form action to the correct endpoint
+    form.action = `${pageContext.request.contextPath}/products/review/edit`;
+    document.getElementById('editReviewId').value = reviewId;
     
     // Set rating
-    document.querySelector(`#edit-${rating}`).checked = true;
+    const ratingInput = document.querySelector(`#edit-${rating}`);
+    if (ratingInput) {
+        ratingInput.checked = true;
+    }
     
     // Set comment
     document.getElementById('editComment').value = comment;
