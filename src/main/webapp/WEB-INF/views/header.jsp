@@ -48,6 +48,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="/orders">Orders</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/vendors">Vendors</a>
+                        </li>
                     </c:if>
                     <li class="nav-item">
                         <a class="nav-link" href="${pageContext.request.contextPath}/logout">Logout</a>
