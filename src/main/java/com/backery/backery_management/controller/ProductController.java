@@ -235,4 +235,15 @@ public class ProductController {
 
         return "customer";
     }
+
+    @GetMapping("/view/{id}")
+    public String viewProduct(@PathVariable("id") int id, Model model, RedirectAttributes redirectAttributes) {
+        Product product = productService.getProductById(id);
+        if (product == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Product not found.");
+            return "redirect:/products/customer";
+        }
+        model.addAttribute("product", product);
+        return "single-product";
+    }
 }
