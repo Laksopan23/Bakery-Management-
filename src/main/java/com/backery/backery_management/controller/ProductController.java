@@ -20,7 +20,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.backery.backery_management.model.Product;
+import com.backery.backery_management.model.User;
+import com.backery.backery_management.service.OrderService;
 import com.backery.backery_management.service.ProductService;
+import com.backery.backery_management.service.UserService;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/products")
@@ -28,6 +33,9 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private OrderService orderService;
 
     private static final String UPLOAD_DIR = "src/main/webapp/resources/images/products/";
 
@@ -245,5 +253,35 @@ public class ProductController {
         }
         model.addAttribute("product", product);
         return "single-product";
+    }
+
+    @GetMapping("/orders/place/{productId}")
+    public String placeOrder(@PathVariable("productId") int productId, HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please login to place an order.");
+            return "redirect:/";
+        }
+
+        Product product = productService.getProductById(productId);
+        if (product == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Product not found.");
+            return "redirect:/products/customer";
+        }
+        if (product.getCurrentStock() <= 0) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Product is out of stock.");
+            return "redirect:/products/view/" + productId;
+        }
+
+        // Fetch user ID (assuming UserService can get user by username)
+        User user = new UserService().getUserByUsername(username); // Assuming UserService exists
+        if (user == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "User not found.");
+            return "redirect:/";
+        }
+
+        model.addAttribute("product", product);
+        model.addAttribute("userId", user.getId());
+        return "order-confirmation";
     }
 }

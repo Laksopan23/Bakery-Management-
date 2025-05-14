@@ -43,8 +43,13 @@
                     </p>
                     
                     <c:if test="${inStock}">
-                        <a href="${pageContext.request.contextPath}/orders/place/${product.id}" 
-                           class="btn btn-success btn-lg w-100 mb-3">Order Now</a>
+                        <form action="${pageContext.request.contextPath}/orders/place/${product.id}" method="get">
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label">Quantity:</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" min="1" max="${product.currentStock}" required>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-lg w-100 mb-3">Order Now</button>
+                        </form>
                     </c:if>
                     
                     <a href="${pageContext.request.contextPath}/products/customer" 
