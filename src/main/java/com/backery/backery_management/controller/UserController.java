@@ -122,7 +122,8 @@ public class UserController {
             @RequestParam("id") int id,
             @RequestParam("username") String username,
             @RequestParam("email") String email,
-            @RequestParam(value = "password", required = false) String password,
+            @RequestParam(value = "password", required = false) String newPassword,
+            @RequestParam("currentPassword") String currentPassword,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
         String sessionUsername = (String) session.getAttribute("username");
@@ -139,11 +140,13 @@ public class UserController {
             redirectAttributes.addFlashAttribute("message", "Unauthorized to update this profile.");
             return "redirect:/users/profile";
         }
-        if (password != null && password.trim().isEmpty()) {
-            redirectAttributes.addFlashAttribute("message", "Password cannot be empty if provided.");
+        // Validate current password
+        if (!userService.authenticateUser(existingUser.getUsername(), currentPassword)) {
+            redirectAttributes.addFlashAttribute("message", "Current password is incorrect.");
             return "redirect:/users/profile";
         }
-        password = (password != null && !password.trim().isEmpty()) ? password : existingUser.getPassword();
+        // Use existing password if new password is not provided
+        String password = (newPassword != null && !newPassword.trim().isEmpty()) ? newPassword : existingUser.getPassword();
         User updatedUser = new User(id, username, password, email, existingUser.getRole());
         System.out.println("Updating user: " + updatedUser); // Debug log
         if (!userService.updateUser(updatedUser)) {

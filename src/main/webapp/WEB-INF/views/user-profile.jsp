@@ -27,7 +27,7 @@
 
                 <!-- Message Alerts -->
                 <c:if test="${not empty message}">
-                    <div class="alert ${message.contains('Failed') || message.contains('not found') || message.contains('Unauthorized') ? 'alert-danger' : 'alert-success'} alert-dismissible fade show mb-4" role="alert">
+                    <div class="alert ${message.contains('Failed') || message.contains('not found') || message.contains('Unauthorized') || message.contains('incorrect') ? 'alert-danger' : 'alert-success'} alert-dismissible fade show mb-4" role="alert">
                         <c:out value="${message}" />
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -101,9 +101,17 @@
                                         <label for="password" class="form-label">New Password (Optional)</label>
                                         <input type="password" class="form-control" id="password" name="password" 
                                                placeholder="Leave blank to keep current password"
-                                               pattern=".{5,}" title="Password must be at least 5 characters long">
+                                               autocomplete="new-password" pattern=".{5,}" title="Password must be at least 5 characters long">
                                         <div class="invalid-feedback">
                                             Password must be at least 5 characters long
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="currentPassword" class="form-label">Current Password</label>
+                                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" 
+                                               required autocomplete="current-password" pattern=".{5,}" title="Please enter your current password">
+                                        <div class="invalid-feedback">
+                                            Current password is required
                                         </div>
                                     </div>
                                     <div class="d-grid">
@@ -246,12 +254,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Form validation
+    // Clear new password field and prevent autofill on modal open
+    const modal = document.getElementById('editProfileModal');
+    modal.addEventListener('shown.bs.modal', function() {
+        document.getElementById('password').value = ''; // Clear new password field
+        document.getElementById('currentPassword').value = ''; // Clear current password field initially
+    });
+
+    // Form validation with debug
     const form = document.getElementById('editProfileForm');
     form.addEventListener('submit', function(event) {
         if (!form.checkValidity()) {
             event.preventDefault();
             event.stopPropagation();
+            console.log("Form validation failed");
+        } else {
+            console.log("Form validated, submitting...");
         }
         form.classList.add('was-validated');
     });
