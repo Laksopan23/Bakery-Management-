@@ -246,15 +246,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Form validation with debug
+    // Form validation
     const form = document.getElementById('editProfileForm');
     form.addEventListener('submit', function(event) {
         if (!form.checkValidity()) {
             event.preventDefault();
             event.stopPropagation();
-            console.log("Form validation failed");
-        } else {
-            console.log("Form validated, submitting...");
         }
         form.classList.add('was-validated');
     });

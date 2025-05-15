@@ -41,6 +41,8 @@ public class UserDAO {
                         } catch (NumberFormatException e) {
                             System.err.println("Invalid ID format in users.txt: " + line);
                         }
+                    } else {
+                        System.err.println("Invalid line format in users.txt: " + line);
                     }
                 }
             }
@@ -61,6 +63,7 @@ public class UserDAO {
                 writer.write(user.toString());
                 writer.newLine();
             }
+            System.out.println("User saved to users.txt: " + user);
             return true;
         } catch (IOException e) {
             System.err.println("Error saving user: " + e.getMessage());
@@ -77,21 +80,23 @@ public class UserDAO {
                 file.createNewFile();
             }
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-                boolean updated = false;
+                boolean userFound = false;
                 for (User u : users) {
                     if (u.getId() == updatedUser.getId()) {
                         writer.write(updatedUser.toString());
-                        updated = true;
+                        userFound = true;
                     } else {
                         writer.write(u.toString());
                     }
                     writer.newLine();
                 }
-                if (!updated && updatedUser.getId() > 0) {
+                if (!userFound) {
+                    System.out.println("User not found for update, appending: " + updatedUser);
                     writer.write(updatedUser.toString());
                     writer.newLine();
                 }
             }
+            System.out.println("users.txt updated successfully with: " + updatedUser);
         } catch (IOException e) {
             System.err.println("Error updating users.txt: " + e.getMessage());
         }

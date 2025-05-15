@@ -1,9 +1,9 @@
 Order ID: 1
-Date: 2025-05-15 14:20:31
+Date: 2025-05-15 16:39:43
 Status: PENDING
-Product: wrgwert
-Quantity: 4
-Total Amount: Rs. 17336.0
+Product: Cake
+Quantity: 2
+Total Amount: Rs. 240.0
 Payment Method: null
 
 Delivery Details:
@@ -16,11 +16,11 @@ Postal Code: 30150
 
 ================================================================================
 Order ID: 2
-Date: 2025-05-15 16:29:15
+Date: 2025-05-15 16:40:34
 Status: PENDING
-Product: wrgwert
-Quantity: 2
-Total Amount: Rs. 8668.0
+Product: Cake
+Quantity: 3
+Total Amount: Rs. 360.0
 Payment Method: null
 
 Delivery Details:
