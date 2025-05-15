@@ -1,28 +1,9 @@
 Order ID: 1
-Date: 2025-05-15 16:39:43
+Date: 2025-05-15 14:20:31
 Status: PENDING
-Product: Cake
-Quantity: 2
-Total Amount: Rs. 240.0
-Payment Method: null
-
-Delivery Details:
-Name: Ravindran Laksopan
-Phone: 0702627291
-Email: laksopan2001@gmail.com
-Address: No:39, Kathirkamathamby Road, Selvanagar, Arayampathy
-City: Kattankudy
-Postal Code: 30150
-
-User ID: 2
-
-================================================================================
-Order ID: 2
-Date: 2025-05-15 16:40:34
-Status: PENDING
-Product: Cake
-Quantity: 3
-Total Amount: Rs. 360.0
+Product: wrgwert
+Quantity: 4
+Total Amount: Rs. 17336.0
 Payment Method: null
 
 Delivery Details:
