@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,7 @@ public class OrderFileService {
 
     private static final String ORDERS_DIRECTORY = "data/orders";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     public OrderFileService() {
         createOrdersDirectory();
@@ -34,27 +36,32 @@ public class OrderFileService {
                 Files.createDirectories(ordersPath);
             }
         } catch (IOException e) {
+            System.err.println("Error creating orders directory: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     public void saveOrder(Order order) {
-        // Create user-specific file
-        String userFileName = String.format("%s/user_%d_orders.txt", ORDERS_DIRECTORY, order.getUserId());
-        File userFile = new File(userFileName);
-
-        // Create all orders file
-        String allOrdersFileName = String.format("%s/all_orders.txt", ORDERS_DIRECTORY);
-        File allOrdersFile = new File(allOrdersFileName);
-
+        lock.writeLock().lock();
         try {
+            // Create user-specific file
+            String userFileName = String.format("%s/user_%d_orders.txt", ORDERS_DIRECTORY, order.getUserId());
+            File userFile = new File(userFileName);
+
+            // Create all orders file
+            String allOrdersFileName = String.format("%s/all_orders.txt", ORDERS_DIRECTORY);
+            File allOrdersFile = new File(allOrdersFileName);
+
             // Save to user-specific file
             saveToFile(userFile, order, true);
 
             // Save to all orders file
             saveToFile(allOrdersFile, order, false);
         } catch (IOException e) {
+            System.err.println("Error saving order: " + e.getMessage());
             e.printStackTrace();
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -93,65 +100,77 @@ public class OrderFileService {
         }
     }
 
-    public List<String> getAllOrders() {
-        List<String> orders = new ArrayList<>();
-        String allOrdersFileName = String.format("%s/all_orders.txt", ORDERS_DIRECTORY);
-        File allOrdersFile = new File(allOrdersFileName);
+    public List<String> getUserOrders(int userId) {
+        lock.readLock().lock();
+        try {
+            String userFileName = String.format("%s/user_%d_orders.txt", ORDERS_DIRECTORY, userId);
+            File userFile = new File(userFileName);
+            if (!userFile.exists()) {
+                return new ArrayList<>();
+            }
 
-        if (!allOrdersFile.exists()) {
-            return orders;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(allOrdersFile))) {
-            StringBuilder currentOrder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("=".repeat(80))) {
-                    if (currentOrder.length() > 0) {
-                        orders.add(currentOrder.toString());
-                        currentOrder = new StringBuilder();
+            List<String> orders = new ArrayList<>();
+            try (BufferedReader reader = new BufferedReader(new FileReader(userFile))) {
+                StringBuilder currentOrder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("=".repeat(80))) {
+                        if (currentOrder.length() > 0) {
+                            orders.add(currentOrder.toString());
+                            currentOrder = new StringBuilder();
+                        }
+                    } else {
+                        currentOrder.append(line).append("\n");
                     }
-                } else {
-                    currentOrder.append(line).append("\n");
+                }
+                if (currentOrder.length() > 0) {
+                    orders.add(currentOrder.toString());
                 }
             }
-            if (currentOrder.length() > 0) {
-                orders.add(currentOrder.toString());
-            }
+            return orders;
         } catch (IOException e) {
+            System.err.println("Error reading user orders: " + e.getMessage());
             e.printStackTrace();
+            return new ArrayList<>();
+        } finally {
+            lock.readLock().unlock();
         }
-        return orders;
     }
 
-    public List<String> getUserOrders(int userId) {
-        List<String> orders = new ArrayList<>();
-        String userFileName = String.format("%s/user_%d_orders.txt", ORDERS_DIRECTORY, userId);
-        File userFile = new File(userFileName);
+    public List<String> getAllOrders() {
+        lock.readLock().lock();
+        try {
+            String allOrdersFileName = String.format("%s/all_orders.txt", ORDERS_DIRECTORY);
+            File allOrdersFile = new File(allOrdersFileName);
+            if (!allOrdersFile.exists()) {
+                return new ArrayList<>();
+            }
 
-        if (!userFile.exists()) {
-            return orders;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(userFile))) {
-            StringBuilder currentOrder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("=".repeat(80))) {
-                    if (currentOrder.length() > 0) {
-                        orders.add(currentOrder.toString());
-                        currentOrder = new StringBuilder();
+            List<String> orders = new ArrayList<>();
+            try (BufferedReader reader = new BufferedReader(new FileReader(allOrdersFile))) {
+                StringBuilder currentOrder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("=".repeat(80))) {
+                        if (currentOrder.length() > 0) {
+                            orders.add(currentOrder.toString());
+                            currentOrder = new StringBuilder();
+                        }
+                    } else {
+                        currentOrder.append(line).append("\n");
                     }
-                } else {
-                    currentOrder.append(line).append("\n");
+                }
+                if (currentOrder.length() > 0) {
+                    orders.add(currentOrder.toString());
                 }
             }
-            if (currentOrder.length() > 0) {
-                orders.add(currentOrder.toString());
-            }
+            return orders;
         } catch (IOException e) {
+            System.err.println("Error reading all orders: " + e.getMessage());
             e.printStackTrace();
+            return new ArrayList<>();
+        } finally {
+            lock.readLock().unlock();
         }
-        return orders;
     }
 }
