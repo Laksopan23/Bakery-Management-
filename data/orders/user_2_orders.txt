@@ -1,9 +1,9 @@
 Order ID: 1
-Date: 2025-05-15 14:20:31
+Date: 2025-05-15 16:07:28
 Status: PENDING
-Product: wrgwert
-Quantity: 4
-Total Amount: Rs. 17336.0
+Product: Cake
+Quantity: 2
+Total Amount: Rs. 240.0
 Payment Method: null
 
 Delivery Details:
