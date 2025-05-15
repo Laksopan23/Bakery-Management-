@@ -1,6 +1,9 @@
 package com.backery.backery_management.model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 public class Order {
 
@@ -12,6 +15,7 @@ public class Order {
     private String status;
     private String productName;
     private LocalDateTime orderDate;
+    private String paymentMethod;
 
     // Delivery details
     private String fullName;
@@ -21,7 +25,6 @@ public class Order {
     private String city;
     private String postalCode;
     private String deliveryNotes;
-    private String paymentMethod;
 
     public Order(int id, int userId, int productId, int quantity) {
         this.id = id;
@@ -105,7 +108,6 @@ public class Order {
         this.paymentMethod = paymentMethod;
     }
 
-    // Delivery details getters and setters
     public String getFullName() {
         return fullName;
     }
@@ -162,9 +164,8 @@ public class Order {
         this.deliveryNotes = deliveryNotes;
     }
 
-    public void setDeliveryDetails(String fullName, String phone, String email,
-            String address, String city, String postalCode,
-            String deliveryNotes) {
+    public void setDeliveryDetails(String fullName, String phone, String email, String address, String city,
+            String postalCode, String deliveryNotes) {
         this.fullName = fullName;
         this.phone = phone;
         this.email = email;
@@ -174,10 +175,69 @@ public class Order {
         this.deliveryNotes = deliveryNotes;
     }
 
+    // Convert LocalDateTime to Date for JSP compatibility
+    public Date getOrderDateAsDate() {
+        if (orderDate == null) {
+            return null;
+        }
+        return Date.from(orderDate.atZone(ZoneId.systemDefault()).toInstant());
+    }
+
     @Override
     public String toString() {
-        return id + "," + userId + "," + productId + "," + quantity + ","
-                + fullName + "," + phone + "," + email + "," + address + ","
-                + city + "," + postalCode + "," + (deliveryNotes != null ? deliveryNotes : "");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return id + "," + userId + "," + productId + "," + quantity + "," + price + "," + status + "," + productName + ","
+                + (orderDate != null ? orderDate.format(formatter) : "") + ","
+                + paymentMethod + "," + fullName + "," + phone + "," + email + "," + address + "," + city + "," + postalCode + ","
+                + (deliveryNotes != null ? deliveryNotes : "");
+    }
+
+    public static Order fromString(String orderText) {
+        Order order = new Order(0, 0, 0, 0);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter shortFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"); // For cases without seconds
+        String[] lines = orderText.split("\n");
+        for (String line : lines) {
+            if (line.startsWith("Order ID:")) {
+                order.setId(Integer.parseInt(line.split(":")[1].trim())); 
+            }else if (line.startsWith("User ID:")) {
+                order.setUserId(Integer.parseInt(line.split(":")[1].trim())); 
+            }else if (line.startsWith("Product:")) {
+                order.setProductName(line.split(":")[1].trim()); 
+            }else if (line.startsWith("Quantity:")) {
+                order.setQuantity(Integer.parseInt(line.split(":")[1].trim())); 
+            }else if (line.startsWith("Total Amount:")) {
+                String amount = line.split(":")[1].trim().replace("Rs. ", "").replace(",", "");
+                order.setPrice(Double.parseDouble(amount) / (order.getQuantity() > 0 ? order.getQuantity() : 1));
+            } else if (line.startsWith("Status:")) {
+                order.setStatus(line.split(":")[1].trim()); 
+            }else if (line.startsWith("Payment Method:")) {
+                order.setPaymentMethod(line.split(":")[1].trim()); 
+            }else if (line.startsWith("Date:")) {
+                String dateStr = line.split(":")[1].trim();
+                if (!dateStr.isEmpty()) {
+                    try {
+                        order.setOrderDate(LocalDateTime.parse(dateStr, formatter)); // Try full format first
+                    } catch (Exception e) {
+                        order.setOrderDate(LocalDateTime.parse(dateStr + ":00", shortFormatter)); // Append :00 if short format
+                    }
+                }
+            } else if (line.startsWith("Name:")) {
+                order.setFullName(line.split(":")[1].trim()); 
+            }else if (line.startsWith("Phone:")) {
+                order.setPhone(line.split(":")[1].trim()); 
+            }else if (line.startsWith("Email:")) {
+                order.setEmail(line.split(":")[1].trim()); 
+            }else if (line.startsWith("Address:")) {
+                order.setAddress(line.split(":")[1].trim()); 
+            }else if (line.startsWith("City:")) {
+                order.setCity(line.split(":")[1].trim()); 
+            }else if (line.startsWith("Postal Code:")) {
+                order.setPostalCode(line.split(":")[1].trim()); 
+            }else if (line.startsWith("Delivery Notes:")) {
+                order.setDeliveryNotes(line.split(":")[1].trim());
+            }
+        }
+        return order;
     }
 }

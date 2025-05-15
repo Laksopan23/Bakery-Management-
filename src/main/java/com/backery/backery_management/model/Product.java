@@ -15,14 +15,14 @@ public class Product {
     public Product(int id, String name, String description, String category, double price, int quantityAvailable,
             int initialStock, int currentStock, String image) {
         this.id = id;
-        this.name = name != null ? name : "";
-        this.description = description != null ? description : "";
-        this.category = category != null ? category : "";
+        this.name = name != null ? name.trim() : "";
+        this.description = description != null ? description.trim() : "";
+        this.category = category != null ? category.trim() : "";
         this.price = price;
         this.quantityAvailable = quantityAvailable;
         this.initialStock = initialStock;
         this.currentStock = currentStock;
-        this.image = image != null ? image : "";
+        this.image = image != null ? image.trim() : "";
     }
 
     // Getters and Setters
@@ -39,7 +39,7 @@ public class Product {
     }
 
     public void setName(String name) {
-        this.name = name != null ? name : "";
+        this.name = name != null ? name.trim() : "";
     }
 
     public String getDescription() {
@@ -47,7 +47,7 @@ public class Product {
     }
 
     public void setDescription(String description) {
-        this.description = description != null ? description : "";
+        this.description = description != null ? description.trim() : "";
     }
 
     public String getCategory() {
@@ -55,7 +55,7 @@ public class Product {
     }
 
     public void setCategory(String category) {
-        this.category = category != null ? category : "";
+        this.category = category != null ? category.trim() : "";
     }
 
     public double getPrice() {
@@ -95,12 +95,12 @@ public class Product {
     }
 
     public void setImage(String image) {
-        this.image = image != null ? image : "";
+        this.image = image != null ? image.trim() : "";
     }
 
     @Override
     public String toString() {
-        return id + "," + name + "," + description + "," + category + "," + price + ","
-                + quantityAvailable + "," + initialStock + "," + currentStock + "," + image;
+        return String.format("%d|||%s|||%s|||%s|||%.2f|||%d|||%d|||%d|||%s",
+                id, name, description, category, price, quantityAvailable, initialStock, currentStock, image);
     }
 }

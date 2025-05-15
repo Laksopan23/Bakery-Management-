@@ -13,6 +13,8 @@ public class UserService {
 
     private final UserDAO userDAO = new UserDAO();
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
+    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[A-Za-z0-9]{3,20}$");
+    private static final Pattern PASSWORD_PATTERN = Pattern.compile("^.{5,}$");
 
     public List<User> getAllUsers() {
         return userDAO.getAllUsers();
@@ -20,9 +22,11 @@ public class UserService {
 
     public boolean registerUser(String username, String password, String email, String role) {
         if (!isValidRegistration(username, password, email)) {
+            System.out.println("Registration failed: Invalid data - Username: " + username + ", Email: " + email);
             return false;
         }
         if (userDAO.isUsernameExists(username)) {
+            System.out.println("Registration failed: Username already exists - " + username);
             return false;
         }
         List<User> users = userDAO.getAllUsers();
@@ -41,19 +45,30 @@ public class UserService {
                 || password == null || password.trim().isEmpty()) {
             return false;
         }
-        return EMAIL_PATTERN.matcher(email.trim()).matches();
+        return USERNAME_PATTERN.matcher(username.trim()).matches()
+                && PASSWORD_PATTERN.matcher(password.trim()).matches()
+                && EMAIL_PATTERN.matcher(email.trim()).matches();
     }
 
     public boolean updateUser(User user) {
         if (!isValidUser(user)) {
+            System.out.println("Update failed: Invalid user data - " + user);
             return false;
         }
         User existingUser = getUserById(user.getId());
-        if (existingUser != null) {
-            userDAO.updateUser(user);
-            return true;
+        if (existingUser == null) {
+            System.out.println("Update failed: User not found - ID: " + user.getId());
+            return false;
         }
-        return false;
+        // Check if the new username is taken by another user
+        User userWithNewUsername = userDAO.findByUsername(user.getUsername());
+        if (userWithNewUsername != null && userWithNewUsername.getId() != user.getId()) {
+            System.out.println("Update failed: Username already taken - " + user.getUsername());
+            return false;
+        }
+        userDAO.updateUser(user);
+        System.out.println("User updated successfully: " + user);
+        return true;
     }
 
     public boolean deleteUser(int id) {
@@ -82,7 +97,9 @@ public class UserService {
         if (user.getRole() == null || (!user.getRole().equals("Admin") && !user.getRole().equals("User"))) {
             return false;
         }
-        return EMAIL_PATTERN.matcher(user.getEmail().trim()).matches();
+        return USERNAME_PATTERN.matcher(user.getUsername().trim()).matches()
+                && PASSWORD_PATTERN.matcher(user.getPassword().trim()).matches()
+                && EMAIL_PATTERN.matcher(user.getEmail().trim()).matches();
     }
 
     private boolean userExists(int id) {
