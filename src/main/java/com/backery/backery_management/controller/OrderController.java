@@ -1,5 +1,6 @@
 package com.backery.backery_management.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -38,7 +39,6 @@ public class OrderController {
     @Autowired
     private OrderFileService orderFileService;
 
-    // Validation patterns
     private static final Pattern NAME_PATTERN = Pattern.compile("^[A-Za-z\\s]{2,50}$");
     private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9]{10}$");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
@@ -98,7 +98,6 @@ public class OrderController {
             @RequestParam(value = "deliveryNotes", required = false) String deliveryNotes,
             RedirectAttributes redirectAttributes) {
 
-        // Validate product and quantity
         Product product = productService.getProductById(productId);
         if (product == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Product not found.");
@@ -107,59 +106,57 @@ public class OrderController {
         if (quantity <= 0 || quantity > product.getCurrentStock()) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Invalid quantity. Please select between 1 and " + product.getCurrentStock() + " units.");
-            return "redirect:/products/view/" + productId;
+            redirectAttributes.addFlashAttribute("formData", createFormDataMap(fullName, phone, email, address, city, postalCode, deliveryNotes));
+            return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
         }
 
-        // Validate delivery details
         if (!NAME_PATTERN.matcher(fullName).matches()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid full name format.");
+            redirectAttributes.addFlashAttribute("formData", createFormDataMap(fullName, phone, email, address, city, postalCode, deliveryNotes));
             return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
         }
-
         if (!PHONE_PATTERN.matcher(phone).matches()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid phone number format. Please enter 10 digits.");
+            redirectAttributes.addFlashAttribute("formData", createFormDataMap(fullName, phone, email, address, city, postalCode, deliveryNotes));
             return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
         }
-
         if (!EMAIL_PATTERN.matcher(email).matches()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid email format.");
+            redirectAttributes.addFlashAttribute("formData", createFormDataMap(fullName, phone, email, address, city, postalCode, deliveryNotes));
             return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
         }
-
         if (address.length() < 10 || address.length() > 200) {
             redirectAttributes.addFlashAttribute("errorMessage", "Address must be between 10 and 200 characters.");
+            redirectAttributes.addFlashAttribute("formData", createFormDataMap(fullName, phone, email, address, city, postalCode, deliveryNotes));
             return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
         }
-
         if (!CITY_PATTERN.matcher(city).matches()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid city name format.");
+            redirectAttributes.addFlashAttribute("formData", createFormDataMap(fullName, phone, email, address, city, postalCode, deliveryNotes));
             return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
         }
-
         if (!POSTAL_CODE_PATTERN.matcher(postalCode).matches()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid postal code format. Please enter 5 digits.");
+            redirectAttributes.addFlashAttribute("formData", createFormDataMap(fullName, phone, email, address, city, postalCode, deliveryNotes));
             return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
         }
-
         if (deliveryNotes != null && deliveryNotes.length() > 200) {
             redirectAttributes.addFlashAttribute("errorMessage", "Delivery notes cannot exceed 200 characters.");
+            redirectAttributes.addFlashAttribute("formData", createFormDataMap(fullName, phone, email, address, city, postalCode, deliveryNotes));
             return "redirect:/orders/place/" + productId + "?quantity=" + quantity;
         }
 
-        // Generate new order ID (simple increment)
         int newOrderId = orderService.getAllOrders().stream()
                 .mapToInt(Order::getId)
                 .max()
                 .orElse(0) + 1;
 
-        // Create order with delivery details
         Order order = new Order(newOrderId, userId, productId, quantity);
-        order.setDeliveryDetails(fullName, phone, email, address, city, postalCode, deliveryNotes);
         order.setPrice(product.getPrice());
         order.setProductName(product.getName());
+        order.setDeliveryDetails(fullName, phone, email, address, city, postalCode, deliveryNotes);
         orderService.addOrder(order);
 
-        // Redirect to payment page
         redirectAttributes.addFlashAttribute("order", order);
         redirectAttributes.addFlashAttribute("product", product);
         return "redirect:/orders/payment";
@@ -169,11 +166,9 @@ public class OrderController {
     public String showPaymentPage(Model model, HttpSession session) {
         Order order = (Order) model.getAttribute("order");
         Product product = (Product) model.getAttribute("product");
-
         if (order == null || product == null) {
             return "redirect:/products/customer";
         }
-
         model.addAttribute("order", order);
         model.addAttribute("product", product);
         return "payment-options";
@@ -196,30 +191,17 @@ public class OrderController {
             return "redirect:/products/customer";
         }
 
-        // Validate payment details based on payment method
         if ("CARD".equals(paymentMethod)) {
-            if (cardNumber == null || !CARD_NUMBER_PATTERN.matcher(cardNumber).matches()) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Invalid card number format.");
-                return "redirect:/orders/payment";
-            }
-
-            if (!validateLuhn(cardNumber)) {
+            if (cardNumber == null || !CARD_NUMBER_PATTERN.matcher(cardNumber).matches() || !validateLuhn(cardNumber)) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Invalid card number.");
                 return "redirect:/orders/payment";
             }
-
-            if (expiryDate == null || !EXPIRY_DATE_PATTERN.matcher(expiryDate).matches()) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Invalid expiry date format. Please use MM/YY format.");
+            if (expiryDate == null || !EXPIRY_DATE_PATTERN.matcher(expiryDate).matches() || !isValidExpiryDate(expiryDate)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Invalid expiry date. Use MM/YY format.");
                 return "redirect:/orders/payment";
             }
-
-            if (!isValidExpiryDate(expiryDate)) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Card has expired or invalid expiry date.");
-                return "redirect:/orders/payment";
-            }
-
             if (cvv == null || !CVV_PATTERN.matcher(cvv).matches()) {
-                redirectAttributes.addFlashAttribute("errorMessage", "CVV must be exactly 3 digits.");
+                redirectAttributes.addFlashAttribute("errorMessage", "CVV must be 3 digits.");
                 return "redirect:/orders/payment";
             }
         } else if ("MOBILE".equals(paymentMethod)) {
@@ -228,27 +210,20 @@ public class OrderController {
                 return "redirect:/orders/payment";
             }
             if (mobileBank == null || mobileBank.isEmpty()) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Please select a mobile bank.");
+                redirectAttributes.addFlashAttribute("errorMessage", "Select a mobile bank.");
                 return "redirect:/orders/payment";
             }
         }
 
-        // Update order with payment details
         order.setPaymentMethod(paymentMethod);
         order.setStatus("PAID");
-        order.setOrderDate(java.time.LocalDateTime.now());
+        order.setOrderDate(LocalDateTime.now());
         orderService.updateOrder(order);
 
-        // Save order to file
-        orderFileService.saveOrder(order);
-
-        // Update product stock
         Product product = productService.getProductById(order.getProductId());
-        int newStock = product.getCurrentStock() - order.getQuantity();
-        product.setCurrentStock(newStock);
+        product.setCurrentStock(product.getCurrentStock() - order.getQuantity());
         productService.updateProduct(product);
 
-        // Add order and product to model for success page
         redirectAttributes.addFlashAttribute("order", order);
         redirectAttributes.addFlashAttribute("product", product);
         return "redirect:/orders/payment-success";
@@ -271,23 +246,19 @@ public class OrderController {
         }
         int userId = userService.getUserByUsername(username).getId();
         List<Order> orders = orderService.getOrdersByUserId(userId);
-
-        // Add product names to orders
         for (Order order : orders) {
             Product product = productService.getProductById(order.getProductId());
             if (product != null) {
                 order.setProductName(product.getName());
             }
         }
-
         model.addAttribute("orders", orders);
         return "customer-orders";
     }
 
     @GetMapping("/admin/all")
     public String showAllOrders(Model model) {
-        List<String> orders = orderFileService.getAllOrders();
-        model.addAttribute("orders", orders);
+        model.addAttribute("orders", orderFileService.getAllOrders());
         return "admin-orders";
     }
 
@@ -297,66 +268,60 @@ public class OrderController {
         if (username == null) {
             return "redirect:/";
         }
-
         int userId = userService.getUserByUsername(username).getId();
-        List<String> orders = orderFileService.getUserOrders(userId);
-        model.addAttribute("orders", orders);
+        model.addAttribute("orders", orderFileService.getUserOrders(userId));
         return "my-orders";
     }
 
-    // Luhn algorithm for card validation
     private boolean validateLuhn(String cardNumber) {
         int sum = 0;
         boolean isEven = false;
-
-        // Loop through values starting from the rightmost digit
         for (int i = cardNumber.length() - 1; i >= 0; i--) {
             int digit = Character.getNumericValue(cardNumber.charAt(i));
-
             if (isEven) {
                 digit *= 2;
                 if (digit > 9) {
                     digit -= 9;
                 }
             }
-
             sum += digit;
             isEven = !isEven;
         }
-
         return (sum % 10) == 0;
     }
 
-    // Validate card expiry date
     private boolean isValidExpiryDate(String expiryDate) {
         try {
             String[] parts = expiryDate.split("/");
             int month = Integer.parseInt(parts[0]);
             int year = Integer.parseInt(parts[1]);
-
-            // Validate month
             if (month < 1 || month > 12) {
                 return false;
             }
-
-            // Get current date
             java.time.YearMonth current = java.time.YearMonth.now();
-            int currentYear = current.getYear() % 100; // Get last 2 digits
+            int currentYear = current.getYear() % 100;
             int currentMonth = current.getMonthValue();
-
-            // Check if card is expired
             if (year < currentYear || (year == currentYear && month < currentMonth)) {
                 return false;
             }
-
-            // Check if year is too far in the future (e.g., more than 10 years)
             if (year > currentYear + 10) {
                 return false;
             }
-
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private java.util.Map<String, String> createFormDataMap(String fullName, String phone, String email, String address, String city, String postalCode, String deliveryNotes) {
+        java.util.Map<String, String> formData = new java.util.HashMap<>();
+        formData.put("fullName", fullName);
+        formData.put("phone", phone);
+        formData.put("email", email);
+        formData.put("address", address);
+        formData.put("city", city);
+        formData.put("postalCode", postalCode);
+        formData.put("deliveryNotes", deliveryNotes);
+        return formData;
     }
 }

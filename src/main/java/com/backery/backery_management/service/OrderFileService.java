@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,29 +38,53 @@ public class OrderFileService {
             }
         } catch (IOException e) {
             System.err.println("Error creating orders directory: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
     public void saveOrder(Order order) {
         lock.writeLock().lock();
         try {
-            // Create user-specific file
-            String userFileName = String.format("%s/user_%d_orders.txt", ORDERS_DIRECTORY, order.getUserId());
-            File userFile = new File(userFileName);
-
-            // Create all orders file
             String allOrdersFileName = String.format("%s/all_orders.txt", ORDERS_DIRECTORY);
             File allOrdersFile = new File(allOrdersFileName);
+            boolean orderExists = false;
 
-            // Save to user-specific file
-            saveToFile(userFile, order, true);
+            if (allOrdersFile.exists()) {
+                try (BufferedReader reader = new BufferedReader(new FileReader(allOrdersFile))) {
+                    StringBuilder currentOrder = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.startsWith("=".repeat(80))) {
+                            if (currentOrder.length() > 0) {
+                                Order existingOrder = Order.fromString(currentOrder.toString());
+                                if (existingOrder.getId() == order.getId()) {
+                                    orderExists = true;
+                                    break;
+                                }
+                                currentOrder = new StringBuilder();
+                            }
+                        }
+                        currentOrder.append(line).append("\n");
+                    }
+                    if (currentOrder.length() > 0) {
+                        Order existingOrder = Order.fromString(currentOrder.toString());
+                        if (existingOrder.getId() == order.getId()) {
+                            orderExists = true;
+                        }
+                    }
+                }
+            }
 
-            // Save to all orders file
-            saveToFile(allOrdersFile, order, false);
+            if (!orderExists) {
+                // Ensure orderDate is set if null
+                if (order.getOrderDate() == null) {
+                    order.setOrderDate(LocalDateTime.now());
+                }
+                saveToFile(allOrdersFile, order, false);
+                String userFileName = String.format("%s/user_%d_orders.txt", ORDERS_DIRECTORY, order.getUserId());
+                saveToFile(new File(userFileName), order, true);
+            }
         } catch (IOException e) {
             System.err.println("Error saving order: " + e.getMessage());
-            e.printStackTrace();
         } finally {
             lock.writeLock().unlock();
         }
@@ -67,33 +92,26 @@ public class OrderFileService {
 
     private void saveToFile(File file, Order order, boolean isUserFile) throws IOException {
         try (PrintWriter writer = new PrintWriter(new FileWriter(file, true))) {
-            // Add separator if file is not empty
             if (file.length() > 0) {
                 writer.println("\n" + "=".repeat(80));
             }
-
-            // Write order details
             writer.println("Order ID: " + order.getId());
-            writer.println("Date: " + order.getOrderDate().format(DATE_FORMATTER));
-            writer.println("Status: " + order.getStatus());
-            writer.println("Product: " + order.getProductName());
+            writer.println("Date: " + (order.getOrderDate() != null ? order.getOrderDate().format(DATE_FORMATTER) : LocalDateTime.now().format(DATE_FORMATTER)));
+            writer.println("Status: " + (order.getStatus() != null ? order.getStatus() : ""));
+            writer.println("Product: " + (order.getProductName() != null ? order.getProductName() : ""));
             writer.println("Quantity: " + order.getQuantity());
-            writer.println("Total Amount: Rs. " + (order.getQuantity() * order.getPrice()));
-            writer.println("Payment Method: " + order.getPaymentMethod());
-
-            // Write delivery details
+            writer.println("Total Amount: Rs. " + (order.getPrice() * order.getQuantity()));
+            writer.println("Payment Method: " + (order.getPaymentMethod() != null ? order.getPaymentMethod() : "null"));
             writer.println("\nDelivery Details:");
-            writer.println("Name: " + order.getFullName());
-            writer.println("Phone: " + order.getPhone());
-            writer.println("Email: " + order.getEmail());
-            writer.println("Address: " + order.getAddress());
-            writer.println("City: " + order.getCity());
-            writer.println("Postal Code: " + order.getPostalCode());
+            writer.println("Name: " + (order.getFullName() != null ? order.getFullName() : ""));
+            writer.println("Phone: " + (order.getPhone() != null ? order.getPhone() : ""));
+            writer.println("Email: " + (order.getEmail() != null ? order.getEmail() : ""));
+            writer.println("Address: " + (order.getAddress() != null ? order.getAddress() : ""));
+            writer.println("City: " + (order.getCity() != null ? order.getCity() : ""));
+            writer.println("Postal Code: " + (order.getPostalCode() != null ? order.getPostalCode() : ""));
             if (order.getDeliveryNotes() != null && !order.getDeliveryNotes().isEmpty()) {
                 writer.println("Delivery Notes: " + order.getDeliveryNotes());
             }
-
-            // Add user ID only in all orders file
             if (!isUserFile) {
                 writer.println("\nUser ID: " + order.getUserId());
             }
@@ -108,7 +126,6 @@ public class OrderFileService {
             if (!userFile.exists()) {
                 return new ArrayList<>();
             }
-
             List<String> orders = new ArrayList<>();
             try (BufferedReader reader = new BufferedReader(new FileReader(userFile))) {
                 StringBuilder currentOrder = new StringBuilder();
@@ -130,7 +147,6 @@ public class OrderFileService {
             return orders;
         } catch (IOException e) {
             System.err.println("Error reading user orders: " + e.getMessage());
-            e.printStackTrace();
             return new ArrayList<>();
         } finally {
             lock.readLock().unlock();
@@ -145,13 +161,12 @@ public class OrderFileService {
             if (!allOrdersFile.exists()) {
                 return new ArrayList<>();
             }
-
             List<String> orders = new ArrayList<>();
             try (BufferedReader reader = new BufferedReader(new FileReader(allOrdersFile))) {
                 StringBuilder currentOrder = new StringBuilder();
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    if (line.startsWith("=".repeat(80))) {
+                    if (line.startsWith("=.repeat(80)")) {
                         if (currentOrder.length() > 0) {
                             orders.add(currentOrder.toString());
                             currentOrder = new StringBuilder();
@@ -167,7 +182,6 @@ public class OrderFileService {
             return orders;
         } catch (IOException e) {
             System.err.println("Error reading all orders: " + e.getMessage());
-            e.printStackTrace();
             return new ArrayList<>();
         } finally {
             lock.readLock().unlock();
