@@ -19,9 +19,16 @@
                         </div>
                         <h4 class="fw-bold text-dark">${user.username}</h4>
                         <p class="text-muted">${user.email}</p>
-                        <span class="badge ${user.role == 'Admin' ? 'bg-danger' : 'bg-info'} role-badge mb-3">
-                            ${user.role}
-                        </span>
+                        <c:choose>
+                            <c:when test="${not empty user.role}">
+                                <span class="badge ${user.role == 'Admin' ? 'bg-danger' : 'bg-info'} role-badge mb-3">
+                                    ${user.role}
+                                </span>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="badge bg-secondary role-badge mb-3">Role Not Set</span>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
 
@@ -49,9 +56,16 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <p class="mb-2"><strong>Role:</strong> 
-                                    <span class="badge ${user.role == 'Admin' ? 'bg-danger' : 'bg-info'} role-badge">
-                                        ${user.role}
-                                    </span>
+                                    <c:choose>
+                                        <c:when test="${not empty user.role}">
+                                            <span class="badge ${user.role == 'Admin' ? 'bg-danger' : 'bg-info'} role-badge">
+                                                ${user.role}
+                                            </span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge bg-secondary role-badge">Role Not Set</span>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </p>
                                 <p class="mb-2"><strong>Password:</strong> 
                                     <span class="password-hidden" id="password-${user.id}">********</span>

@@ -113,6 +113,7 @@ public class UserController {
             redirectAttributes.addFlashAttribute("message", "User not found.");
             return "redirect:/";
         }
+        System.out.println("User fetched for profile: " + user); // Debug log to check role
         model.addAttribute("user", user);
         return "user-profile";
     }
