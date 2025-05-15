@@ -13,6 +13,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.backery.backery_management.model.User;
 import com.backery.backery_management.service.UserService;
 
+import jakarta.servlet.http.HttpSession;
+
 @Controller
 @RequestMapping("/users")
 public class UserController {
@@ -37,7 +39,7 @@ public class UserController {
             @RequestParam("username") String username,
             @RequestParam("email") String email,
             @RequestParam("role") String role,
-            @RequestParam(value = "password", required = true) String password, // Make password required
+            @RequestParam(value = "password", required = true) String password,
             RedirectAttributes redirectAttributes) {
         if (password == null || password.trim().isEmpty()) {
             redirectAttributes.addFlashAttribute("message", "Password is required.");
@@ -97,5 +99,59 @@ public class UserController {
             redirectAttributes.addFlashAttribute("message", "User deleted successfully!");
         }
         return "redirect:/users";
+    }
+
+    @GetMapping("/profile")
+    public String showUserProfile(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            redirectAttributes.addFlashAttribute("message", "Please login to view your profile.");
+            return "redirect:/";
+        }
+        User user = userService.getUserByUsername(username);
+        if (user == null) {
+            redirectAttributes.addFlashAttribute("message", "User not found.");
+            return "redirect:/";
+        }
+        model.addAttribute("user", user);
+        return "user-profile";
+    }
+
+    @PostMapping("/profile/update")
+    public String updateUserProfile(
+            @RequestParam("id") int id,
+            @RequestParam("username") String username,
+            @RequestParam("email") String email,
+            @RequestParam(value = "password", required = false) String password,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        String sessionUsername = (String) session.getAttribute("username");
+        if (sessionUsername == null) {
+            redirectAttributes.addFlashAttribute("message", "Please login to update your profile.");
+            return "redirect:/";
+        }
+        User existingUser = userService.getUserById(id);
+        if (existingUser == null) {
+            redirectAttributes.addFlashAttribute("message", "User not found.");
+            return "redirect:/users/profile";
+        }
+        if (!existingUser.getUsername().equals(sessionUsername)) {
+            redirectAttributes.addFlashAttribute("message", "Unauthorized to update this profile.");
+            return "redirect:/users/profile";
+        }
+        if (password != null && password.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("message", "Password cannot be empty if provided.");
+            return "redirect:/users/profile";
+        }
+        password = (password != null && !password.trim().isEmpty()) ? password : existingUser.getPassword();
+        User updatedUser = new User(id, username, password, email, existingUser.getRole());
+        System.out.println("Updating user: " + updatedUser); // Debug log
+        if (!userService.updateUser(updatedUser)) {
+            redirectAttributes.addFlashAttribute("message", "Failed to update profile. Username might already exist or invalid data.");
+            return "redirect:/users/profile";
+        }
+        session.setAttribute("username", username); // Update session username
+        redirectAttributes.addFlashAttribute("message", "Profile updated successfully!");
+        return "redirect:/users/profile";
     }
 }
