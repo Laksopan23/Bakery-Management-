@@ -191,7 +191,10 @@ public class OrderController {
             return "redirect:/products/customer";
         }
 
-        if ("CARD".equals(paymentMethod)) {
+        // Set status based on payment method
+        if ("COD".equals(paymentMethod)) {
+            order.setStatus("PENDING"); // Set to Pending for COD
+        } else if ("CARD".equals(paymentMethod)) {
             if (cardNumber == null || !CARD_NUMBER_PATTERN.matcher(cardNumber).matches() || !validateLuhn(cardNumber)) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Invalid card number.");
                 return "redirect:/orders/payment";
@@ -204,6 +207,7 @@ public class OrderController {
                 redirectAttributes.addFlashAttribute("errorMessage", "CVV must be 3 digits.");
                 return "redirect:/orders/payment";
             }
+            order.setStatus("PAID");
         } else if ("MOBILE".equals(paymentMethod)) {
             if (mobileNumber == null || !PHONE_PATTERN.matcher(mobileNumber).matches()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Invalid mobile number.");
@@ -213,19 +217,27 @@ public class OrderController {
                 redirectAttributes.addFlashAttribute("errorMessage", "Select a mobile bank.");
                 return "redirect:/orders/payment";
             }
+            order.setStatus("PAID");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid payment method.");
+            return "redirect:/orders/payment";
         }
 
         order.setPaymentMethod(paymentMethod);
-        order.setStatus("PAID");
         order.setOrderDate(LocalDateTime.now());
         orderService.updateOrder(order);
 
-        Product product = productService.getProductById(order.getProductId());
-        product.setCurrentStock(product.getCurrentStock() - order.getQuantity());
-        productService.updateProduct(product);
+        // Update stock only for PAID orders (not for COD)
+        if ("PAID".equals(order.getStatus())) {
+            Product product = productService.getProductById(order.getProductId());
+            if (product != null) {
+                product.setCurrentStock(product.getCurrentStock() - order.getQuantity());
+                productService.updateProduct(product);
+            }
+        }
 
         redirectAttributes.addFlashAttribute("order", order);
-        redirectAttributes.addFlashAttribute("product", product);
+        redirectAttributes.addFlashAttribute("product", productService.getProductById(order.getProductId()));
         return "redirect:/orders/payment-success";
     }
 
