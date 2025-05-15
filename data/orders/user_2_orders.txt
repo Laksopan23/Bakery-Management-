@@ -1,5 +1,5 @@
 Order ID: 1
-Date: 2025-05-15 18:17:23
+Date: 2025-05-15 16:39:43
 Status: PENDING
 Product: wrgwert
 Quantity: 2
@@ -30,3 +30,4 @@ Email: laksopan2001@gmail.com
 Address: No:39, Kathirkamathamby Road, Selvanagar, Arayampathy
 City: Kattankudy
 Postal Code: 30150
+>>>>>>> ba4b80daa37ff0c952f2cadd80d1cffbb0aad4d8
