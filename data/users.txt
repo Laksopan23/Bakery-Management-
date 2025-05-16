@@ -1,3 +1,3 @@
-1,Admin,admin@12345,admin@gmail.com,Admin
+1,Admin,Admin@12345,admin@gmail.com,Admin
 2,User1,User1@12345,User1@gmail.com,User
 3,User2,User2@12345,User2@gmail.com,User

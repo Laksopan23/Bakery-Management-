@@ -152,7 +152,7 @@ public class ReviewDAO {
                 .orElse(null);
     }
 
-    private List<Review> getAllReviews() {
+    public List<Review> getAllReviews() {
         List<Review> reviews = new ArrayList<>();
         File file = new File(filePath);
         try {

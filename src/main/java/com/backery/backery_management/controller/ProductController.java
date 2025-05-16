@@ -9,8 +9,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.imageio.IIOImage;
@@ -32,8 +34,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.backery.backery_management.dao.ReviewDAO;
+import com.backery.backery_management.dao.ReplyDAO;
 import com.backery.backery_management.model.Product;
 import com.backery.backery_management.model.Review;
+import com.backery.backery_management.model.Reply;
 import com.backery.backery_management.model.User;
 import com.backery.backery_management.service.OrderService;
 import com.backery.backery_management.service.ProductService;
@@ -48,6 +52,7 @@ public class ProductController {
     @Autowired
     private ProductService productService;
     private final ReviewDAO reviewDAO = new ReviewDAO();
+    private final ReplyDAO replyDAO = new ReplyDAO();
 
     @Autowired
     private OrderService orderService;
@@ -443,8 +448,18 @@ public class ProductController {
             redirectAttributes.addFlashAttribute("errorMessage", "Product not found.");
             return "redirect:/products/customer";
         }
+        List<Review> reviews = reviewDAO.getReviewsByProductId(id);
+        
+        // Get replies for each review
+        Map<Integer, List<Reply>> reviewReplies = new HashMap<>();
+        for (Review review : reviews) {
+            List<Reply> replies = replyDAO.getRepliesByReviewId(review.getId());
+            reviewReplies.put(review.getId(), replies);
+        }
+        
         model.addAttribute("product", product);
-        model.addAttribute("reviews", reviewDAO.getReviewsByProductId(id));
+        model.addAttribute("reviews", reviews);
+        model.addAttribute("reviewReplies", reviewReplies);
         return "single-product";
     }
 
@@ -490,10 +505,16 @@ public class ProductController {
     @PostMapping("/{id}/review")
     public String addReview(
             @PathVariable("id") int productId,
-            @RequestParam("customerName") String customerName,
             @RequestParam("rating") int rating,
             @RequestParam("comment") String comment,
+            HttpSession session,
             RedirectAttributes redirectAttributes) {
+
+        String customerName = (String) session.getAttribute("customerName");
+        if (customerName == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please login to add a review.");
+            return "redirect:/products/view/" + productId;
+        }
 
         if (rating < 1 || rating > 5) {
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid rating value.");
@@ -550,12 +571,13 @@ public class ProductController {
     @PostMapping("/review/delete")
     public String deleteReview(
             @RequestParam int reviewId,
+            @RequestParam int productId,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
         String customerName = (String) session.getAttribute("customerName");
         if (customerName == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Please login to delete reviews");
-            return "redirect:/products/customer";
+            return "redirect:/products/view/" + productId;
         }
 
         ReviewDAO reviewDAO = new ReviewDAO();
@@ -563,25 +585,112 @@ public class ProductController {
 
         if (existingReview == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Review not found");
-            return "redirect:/products/customer";
+            return "redirect:/products/view/" + productId;
         }
 
         if (!existingReview.getCustomerName().equals(customerName)) {
             redirectAttributes.addFlashAttribute("errorMessage", "You can only delete your own reviews");
-            return "redirect:/products/customer";
+            return "redirect:/products/view/" + productId;
         }
 
+        // First delete all replies associated with this review
+        boolean repliesDeleted = replyDAO.deleteRepliesByReviewId(reviewId);
+        
+        // Then delete the review
         if (reviewDAO.deleteReview(reviewId)) {
-            redirectAttributes.addFlashAttribute("successMessage", "Review deleted successfully!");
+            if (!repliesDeleted) {
+                redirectAttributes.addFlashAttribute("warningMessage", "Review deleted but there was an issue deleting some replies.");
+            } else {
+                redirectAttributes.addFlashAttribute("successMessage", "Review and all replies deleted successfully!");
+            }
         } else {
             redirectAttributes.addFlashAttribute("errorMessage", "Failed to delete review");
         }
-        return "redirect:/products/customer";
+        return "redirect:/products/view/" + productId;
     }
 
     @GetMapping("/review/delete-test")
     @ResponseBody
     public String testDelete() {
         return "Delete mapping works!";
+    }
+
+    @GetMapping("/reviews")
+    public String showAllReviews(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String rating,
+            Model model,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        
+        // Check if user is admin
+        String role = (String) session.getAttribute("role");
+        if (!"Admin".equals(role)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Access denied. Admin only.");
+            return "redirect:/";
+        }
+
+        // Get all reviews
+        ReviewDAO reviewDAO = new ReviewDAO();
+        List<Review> reviews = reviewDAO.getAllReviews();
+
+        // Filter by rating if specified
+        if (rating != null && !rating.isEmpty()) {
+            int ratingValue = Integer.parseInt(rating);
+            reviews = reviews.stream()
+                    .filter(r -> r.getRating() == ratingValue)
+                    .collect(Collectors.toList());
+        }
+
+        // Filter by search term if specified
+        if (search != null && !search.trim().isEmpty()) {
+            String searchLower = search.toLowerCase();
+            reviews = reviews.stream()
+                    .filter(r -> {
+                        Product product = productService.getProductById(r.getProductId());
+                        return (product != null && product.getName().toLowerCase().contains(searchLower)) ||
+                               r.getCustomerName().toLowerCase().contains(searchLower) ||
+                               r.getComment().toLowerCase().contains(searchLower);
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // Create a map of product names for display
+        Map<Integer, String> productNames = new HashMap<>();
+        for (Review review : reviews) {
+            Product product = productService.getProductById(review.getProductId());
+            if (product != null) {
+                productNames.put(review.getProductId(), product.getName());
+            }
+        }
+
+        model.addAttribute("reviews", reviews);
+        model.addAttribute("productNames", productNames);
+        return "all-reviews";
+    }
+
+    @PostMapping("/review/reply")
+    public String addReply(
+            @RequestParam int reviewId,
+            @RequestParam int productId,
+            @RequestParam String comment,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        
+        // Check if user is admin
+        String role = (String) session.getAttribute("role");
+        String adminName = (String) session.getAttribute("username");
+        if (!"Admin".equals(role)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Only admins can reply to reviews.");
+            return "redirect:/products/view/" + productId;
+        }
+
+        Reply reply = new Reply(0, reviewId, adminName, comment, null);
+        if (replyDAO.addReply(reply)) {
+            redirectAttributes.addFlashAttribute("successMessage", "Reply added successfully!");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to add reply.");
+        }
+        return "redirect:/products/view/" + productId;
     }
 }
