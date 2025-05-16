@@ -42,18 +42,28 @@
                         <strong>Current Stock:</strong> ${product.currentStock} units
                     </p>
                     
-                    <c:if test="${inStock}">
-                    <form action="${pageContext.request.contextPath}/orders/place/${product.id}" method="get">
-                        <div class="mb-3">
-                            <label for="quantity" class="form-label">Quantity:</label>
-                            <input type="number" class="form-control" id="quantity" name="quantity" min="1" max="${product.currentStock}" required>
-                        </div>
-                        <button type="submit" class="btn btn-success btn-lg w-100 mb-3">Order Now</button>
-                    </form>
+                    <!-- Show order form only for regular users -->
+                    <c:if test="${sessionScope.role ne 'Admin' && inStock}">
+                        <form action="${pageContext.request.contextPath}/orders/place/${product.id}" method="get">
+                            <div class="mb-3">
+                                <label for="quantity" class="form-label">Quantity:</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" min="1" max="${product.currentStock}" required>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-lg w-100 mb-3">Order Now</button>
+                        </form>
                     </c:if>
                     
-                    <a href="${pageContext.request.contextPath}/products/customer" 
-                       class="btn btn-outline-secondary w-100">Back to Products</a>
+                    <!-- Different back buttons for admin and user -->
+                    <c:choose>
+                        <c:when test="${sessionScope.role eq 'Admin'}">
+                            <a href="${pageContext.request.contextPath}/products/reviews" 
+                               class="btn btn-outline-primary w-100">Back to Reviews Chart</a>
+                        </c:when>
+                        <c:otherwise>
+                            <a href="${pageContext.request.contextPath}/products/customer" 
+                               class="btn btn-outline-secondary w-100">Back to Products</a>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
         </div>
@@ -86,10 +96,6 @@
                     <!-- Add Review Form -->
                     <form action="${pageContext.request.contextPath}/products/${product.id}/review" method="post" class="mb-4">
                         <div class="mb-3">
-                            <label for="customerName" class="form-label">Your Name</label>
-                            <input type="text" class="form-control" id="customerName" name="customerName" required>
-                        </div>
-                        <div class="mb-3">
                             <label class="form-label">Rating</label>
                             <div class="rating">
                                 <input type="radio" name="rating" value="5" id="5" required><label for="5">☆</label>
@@ -112,7 +118,6 @@
                             <p class="text-muted text-center">No reviews yet. Be the first to review this product!</p>
                         </c:if>
                         <c:forEach var="review" items="${reviews}">
-                            <p>Review by: '${review.customerName}' | Session: '${sessionScope.customerName}'</p>
                             <div class="review-item border-bottom pb-3 mb-3">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <div>
@@ -125,7 +130,8 @@
                                     </div>
                                     <div class="text-end">
                                         <small class="text-muted d-block mb-2">${review.createdAt}</small>
-                                        <c:if test="${review.customerName eq sessionScope.customerName}">
+                                        <!-- Show edit/delete only for user's own reviews -->
+                                        <c:if test="${review.customerName eq sessionScope.customerName && sessionScope.role eq 'User'}">
                                             <div class="btn-group btn-group-sm">
                                                 <button type="button" class="btn btn-outline-primary" 
                                                         onclick="editReview('${review.id}', '${review.customerName}', '${review.rating}', '${review.comment}')">
@@ -133,6 +139,7 @@
                                                 </button>
                                                 <form action="${pageContext.request.contextPath}/products/review/delete" method="post" style="display:inline;">
                                                     <input type="hidden" name="reviewId" value="${review.id}" />
+                                                    <input type="hidden" name="productId" value="${product.id}" />
                                                     <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this review?')">
                                                         <i class="bi bi-trash"></i> Delete
                                                     </button>
@@ -142,6 +149,33 @@
                                     </div>
                                 </div>
                                 <p class="mb-0">${review.comment}</p>
+
+                                <!-- Admin Replies -->
+                                <div class="admin-replies mt-3">
+                                    <c:forEach var="reply" items="${reviewReplies[review.id]}">
+                                        <div class="admin-reply border-start border-primary ps-3 mt-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-primary fw-bold">Admin ${reply.adminName}</small>
+                                                <small class="text-muted">${reply.createdAt}</small>
+                                            </div>
+                                            <p class="mb-0">${reply.comment}</p>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+
+                                <!-- Admin Reply Form - Only show for admins -->
+                                <c:if test="${sessionScope.role eq 'Admin'}">
+                                    <div class="admin-reply-form mt-3">
+                                        <form action="${pageContext.request.contextPath}/products/review/reply" method="post">
+                                            <input type="hidden" name="reviewId" value="${review.id}" />
+                                            <input type="hidden" name="productId" value="${product.id}" />
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" name="comment" placeholder="Add admin reply..." required>
+                                                <button type="submit" class="btn btn-outline-primary">Reply</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </c:if>
                             </div>
                         </c:forEach>
                     </div>
@@ -161,7 +195,7 @@
                 <h5 class="modal-title">Edit Review</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editReviewForm" method="post">
+            <form id="editReviewForm" method="post" action="${pageContext.request.contextPath}/products/review/edit">
                 <input type="hidden" id="editReviewId" name="reviewId" />
                 <input type="hidden" id="editProductId" name="productId" value="${product.id}" />
                 <div class="modal-body">
@@ -225,26 +259,33 @@
 
 <script>
 function editReview(reviewId, customerName, rating, comment) {
-    console.log('Raw rating value:', rating); // Debug log
+    console.log('Opening edit modal with data:', {
+        reviewId,
+        customerName,
+        rating,
+        comment
+    });
+
     const modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
     const form = document.getElementById('editReviewForm');
     
-    // Set form action to the correct endpoint
-    form.action = `${pageContext.request.contextPath}/products/review/edit`;
     document.getElementById('editReviewId').value = reviewId;
+    document.getElementById('editProductId').value = '${product.id}';
     
     // Clear all rating radio buttons first
     for (let i = 1; i <= 5; i++) {
         const radio = document.getElementById(`edit-${i}`);
         if (radio) radio.checked = false;
     }
-    // Trim and parse rating to ensure it's an integer
+
+    // Set rating
     const ratingValue = parseInt(String(rating).trim(), 10);
+    console.log('Setting rating value:', ratingValue);
     const ratingInput = document.getElementById(`edit-${ratingValue}`);
     if (ratingInput) {
         ratingInput.checked = true;
     } else {
-        console.log('Could not find radio for rating:', ratingValue);
+        console.error('Could not find radio for rating:', ratingValue);
     }
     
     // Set comment
@@ -252,4 +293,29 @@ function editReview(reviewId, customerName, rating, comment) {
     
     modal.show();
 }
+
+// Add form submit handler
+document.getElementById('editReviewForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const url = this.action;
+    
+    fetch(url, {
+        method: 'POST',
+        body: new URLSearchParams(formData)
+    })
+    .then(response => {
+        if (response.ok) {
+            // Reload the page to show updated review
+            window.location.reload();
+        } else {
+            throw new Error('Failed to update review');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update review. Please try again.');
+    });
+});
 </script> 

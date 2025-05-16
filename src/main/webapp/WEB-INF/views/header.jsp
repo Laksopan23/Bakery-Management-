@@ -26,7 +26,7 @@
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">Bakery Management</a>
+            <a class="navbar-brand" href="${pageContext.request.contextPath}/">Bakery Management</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
                     data-bs-target="#navbarNav" aria-controls="navbarNav" 
                     aria-expanded="false" aria-label="Toggle navigation">
@@ -35,20 +35,23 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/home">Home</a>
+                        <a class="nav-link" href="${pageContext.request.contextPath}/home">Home</a>
                     </li>
                     <c:if test="${sessionScope.role == 'Admin'}">
                         <li class="nav-item">
-                            <a class="nav-link" href="/products">Products</a>
+                            <a class="nav-link" href="${pageContext.request.contextPath}/products">Products</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/users">Users</a>
+                            <a class="nav-link" href="${pageContext.request.contextPath}/users">Users</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/orders">Orders</a>
+                            <a class="nav-link" href="${pageContext.request.contextPath}/orders">Orders</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/vendors">Vendors</a>
+                            <a class="nav-link" href="${pageContext.request.contextPath}/vendors">Vendors</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="${pageContext.request.contextPath}/products/reviews">Reviews</a>
                         </li>
                     </c:if>
                     <c:if test="${sessionScope.role == 'User'}">
@@ -69,5 +72,8 @@
             </div>
         </div>
     </nav>
+    
+    <!-- Add Bootstrap JS and its dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
